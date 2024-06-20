@@ -1,0 +1,42 @@
+# Documentation
+# * mdbook   https://rust-lang.github.io/mdBook/
+# * template https://github.com/kg4zow/mdbook-template/
+
+[book]
+authors                 = ["John Simpson"]
+language                = "en"
+multilingual            = false
+src                     = "src"
+title                   = "jms1.info"
+
+[output.html]
+additional-css          = [ "section-lines.css" , "version-commit.css" ]
+curly-quotes            = false
+no-section-label        = true
+default-theme           = "rust"
+preferred-dark-theme    = "ayu"
+smart-punctuation       = false
+input-404               = "404.md"
+
+[preprocessor.version-commit]
+renderers               = [ "html" ]
+command                 = "./version-commit"
+
+[output.html.fold]
+enable                  = true
+level                   = 0
+
+########################################
+# Redirect URLs of individual pages from the old site
+# to the corresponding page on the new site
+
+[output.html.redirect]
+"/2017/12/13/load-pgp-keys-on-yubikey.html"     = "/yubikey/load-pgp-key.html"
+"/2017/12/13/reset-yubikey-openpgp-app.html"    = "/yubikey/reset-openpgp.html"
+"/2018/04/01/make-ssh-use-gpg-agent.html"       = "/pgp/ssh-pgp-agent.html"
+"/2019/02/01/add-authentication-subkey-to-existing-gpg-key.html" = "/pgp/auth-subkey.html"
+"/2020/12/24/upside-down-characters.html"       = "/random/upside-down.html"
+"/2021/01/09/debian-10-on-macbook-pro.html"     = "/linux/deb10-mac.html"
+"/2022/02/24/puppet-ensure-packages.html"       = "/puppet/ensure-packages.html"
+"/2022/03/08/mdbook-create.html"                = "/mdbook/create.html"
+"/2022/03/08/mdbook-version.html"               = "/mdbook/commit-info.html"
