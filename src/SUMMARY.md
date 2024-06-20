@@ -6,6 +6,10 @@
 
 # Technical
 
+- [git](git/index.md)
+    - [Commit before new branch](git/move-commit.md)
+    - [My Configuration](git/config.md)
+
 - [Linux](linux/index.md)
     - [Debian 10 on a Macbook Pro](linux/deb10-mac.md)
 
