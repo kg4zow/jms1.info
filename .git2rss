@@ -1,0 +1,9 @@
+# Per-repo settings to control what 'git2rss' does in this repo
+
+title       = jms1.info
+link        = https://jms1.info/
+description = Random information from jms1
+image_url   = ""
+show_email  = user
+commit_url  = ""
+limit       = 0
