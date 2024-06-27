@@ -13,5 +13,5 @@ serve:
 serve-all:
 	mdbook serve --open --hostname 0.0.0.0
 
-push:
+push: build
 	rsync -avz --delete book/ /keybase/team/jms1team.sites/jms1.info/
