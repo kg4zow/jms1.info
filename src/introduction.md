@@ -1,4 +1,4 @@
-<div style="float: right ; border: 1px solid ; margin: 0 0 5px 5px ;"><img src="../images/jms1-150x200.png" alt='[jms1]' /><br/>Me, ~2010?</div>
+<div style="float: right ; border: 1px solid ; margin: 0 0 5px 5px ; text-align: center ;"><img src="../images/jms1-150x200.png" alt='[jms1]' /><br/>Me, 2023-11-14</div>
 
 # `jms1.info`
 
