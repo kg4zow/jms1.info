@@ -24,6 +24,9 @@
 - [Puppet](puppet/index.md)
     - [ensure_packages()](puppet/ensure-packages.md)
 
+- [Random](random/index.md)
+    - [Upside-Down Characters](random/upside-down.md)
+
 - [Shell scripting](shell/index.md)
     - [set_x](shell/set_x.md)
 
@@ -33,6 +36,7 @@
 
 ---
 
-# Random
+# Non-Technical
 
-- [Upside-Down Characters](random/upside-down.md)
+- [TBD]()
+
