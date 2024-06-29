@@ -17,6 +17,9 @@
     - [Creating a book](mdbook/create.md)
     - [Adding commit/date info](mdbook/commit-info.md)
 
+- [Obsidian](obsidian/index.md)
+    - [Live Preview Pane](obsidian/live-preview.md)
+
 - [PGP and GnuPG](pgp/index.md)
     - [Authentication Subkeys](pgp/auth-subkey.md)
     - [Make SSH use gpg-agent](pgp/ssh-pgp-agent.md)
