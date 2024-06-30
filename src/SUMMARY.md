@@ -18,6 +18,10 @@
     - [Adding commit/date info](mdbook/commit-info.md)
 
 - [Obsidian](obsidian/index.md)
+    - [obsidian-git](obsidian/git/index.md)
+        - [Add to a Vault](obsidian/git/add.md)
+        - [Clone an Existing Vault](obsidian/git/clone.md)
+    - [Copy Daily Note](obsidian/copy-daily.md)
     - [Live Preview Pane](obsidian/live-preview.md)
 
 - [PGP and GnuPG](pgp/index.md)
