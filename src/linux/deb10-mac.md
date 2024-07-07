@@ -1,8 +1,8 @@
-# Notes from Installing Debian 10 on a Macbook Pro
+# Installing Debian 10 on a Macbook Pro
 
 **2021-01-09**
 
-I've always used the RedHat-flavoured versions of Linux, usually CentOS. However, RedHat has decided to stop maintaining CentOS 8 and declare an early end-of-life for it, and instead is offering "CentOS Stream", which instead of *following* RedHat Enterprise, is essentially a beta-test distro which *feeds into* RHEL.
+I've always used the RedHat-flavoured versions of Linux, usually CentOS. However, Red Hat "acquired" CentOS and has decided to stop maintaining CentOS 8 and declare an early end-of-life for it, and is now offering "CentOS Stream". Instead of *following* Red Hat Enterprise, CentOS is now essentially a beta-test distro which *feeds into* RHEL, and anybody who uses CentOS is providing free QA services for Red Hat.
 
 IBM purchased RedHat a few years back, so I can't say I'm totally surprised by this.
 
@@ -10,9 +10,13 @@ Anyway.
 
 At work, the servers we deploy at client sites have been using CentOS 7 for many years, and we *were* about to start upgrading things from CentOS 7 to CentOS 8. However, with this news we've decided to move away from CentOS entirely.
 
-At the same time, we're also in the process of re-architecting our software to run under Kubernetes, which doesn't really care *what* distro it's running on, so long as it has a Linux kernel. So moving from CentOS to Debian isn't necessarily a *huge* deal, except that it means re-writing the systems which build the underlying machines on which Docker and Kubernetes will be installed ... *which is pretty much my job.*
+At the same time, we're also in the process of re-architecting our software to run under Kubernetes, which doesn't really care *what* distro it's running on, so long as it has a Linux kernel. So moving from CentOS to Debian isn't necessarily a *huge* deal, except that it means re-writing the systems which build the underlying machines on which Docker and Kubernetes will be installed.
 
-Long story short, we've decided to use Debian 10 instead of CentOS. (Actually, other things have taken priority and in the meantime Debian 11 was released, so we'll probably be using Debian 11 instead.)
+Which is pretty much my job.
+
+Long story short, we've decided to use Debian 10 instead of CentOS.
+
+> Actually, other things have changed over time. For a while we were targeting Debian 11, then Debian 12, but the company was acquired, and then *that* company was acquired, and the *new* corporate overlords have decreed that we're going to use RHEL 9, and are not open to any kind of discussion about it. The company I started with is just one small part of one *division* of the current corporation - instead of having 170 employees, we now have 86,000 employees. At this point I'm just glad they remember my name when it comes time to issue paychecks.
 
 This page contains a collection of random notes I made for myself while exploring Debian 10, using a spare 2013 MacBook Pro.
 
@@ -151,6 +155,10 @@ $ sudo ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 ```
 
 # Changelog
+
+**2024-07-06** jms1
+
+- updated intro text
 
 **2024-06-19** jms1
 

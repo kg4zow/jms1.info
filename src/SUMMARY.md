@@ -11,6 +11,8 @@
     - [My Configuration](git/config.md)
 
 - [Linux](linux/index.md)
+    - [CentOS 7 - Fix yum repos](linux/centos7-vault.md)
+    - [colima - x86 Containers on ARM](linux/colima-arm-x86.md)
     - [Debian 10 on a Macbook Pro](linux/deb10-mac.md)
 
 - [mdbook](mdbook/index.md)
@@ -25,6 +27,8 @@
     - [Live Preview Pane](obsidian/live-preview.md)
 
 - [PGP and GnuPG](pgp/index.md)
+    - [Create a PGP Key]()
+    - [Export and Import PGP Keys]()
     - [Authentication Subkeys](pgp/auth-subkey.md)
     - [Make SSH use gpg-agent](pgp/ssh-pgp-agent.md)
 
@@ -38,8 +42,9 @@
     - [set_x](shell/set_x.md)
 
 - [Yubikey](yubikey/index.md)
-    - [Loading PGP Keys on a YubiKey](yubikey/load-pgp-key.md)
-    - [Reset a YubiKey's OpenPGP App](yubikey/reset-openpgp.md)
+    - [Loading PGP Keys on a Yubikey](yubikey/load-pgp-key.md)
+    - [Reset a Yubikey's OpenPGP App](yubikey/reset-openpgp.md)
+    - [Using a Yubikey for SSH keys](yubikey/ssh.md)
 
 ---
 
