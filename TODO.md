@@ -5,3 +5,5 @@
     * `copy-daily-note` script
 
 * shell prompt - `jprompt.sh` etc.
+
+* go through `/keybase/public/jms1/notes/`
