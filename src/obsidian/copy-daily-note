@@ -1,0 +1,397 @@
+#!/bin/bash
+#
+# copy-daily-note
+# John Simpson <jms1@jms1.net> 2024-07-01
+#
+# Copy the current date's Obsidian "Daily Note" to a file outside the vault.
+# This is designed to be called from the "Shell commands" Obsidian plugin,
+# in response to a "File content modified" event.
+#
+# https://jms1.info/obsidian/copy-daily.html
+#
+###############################################################################
+#
+# The MIT License (MIT)
+#
+# Copyright (C) 2024 John Simpson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+###############################################################################
+
+########################################
+# Default configuration values
+
+CHECKSUM_PROGRAM="sha256sum"
+DATE_FORMAT=""
+LOG_IGNORED=false
+LOG_FILE=""
+INCLUDE_LINK=true
+
+###############################################################################
+#
+# Simple logging function
+# - if $LOG_FILE is defined, send output there with a timestamp
+# - otherwise send to STDERR, which becomes an on-screen notification
+
+function logit {
+    MSG="${*:-}"
+
+    if [[ -n "$LOG_FILE" ]]
+    then
+        NOW="$( date '+%Y-%m-%dT%H:%M:%S%z' )"
+        echo "$NOW $MSG" >> "$LOG_FILE"
+    else
+        echo "$MSG" 1>&2
+    fi
+}
+
+###############################################################################
+#
+# Find the root directory of the Obsidian Vault containing a file
+# - start from the directory containing the file and walk "up" until we
+#   find a directory which *contains* a '.obsidian' directory
+
+function find_vault {
+    ########################################
+    # Make sure the file exists. (This also means that
+    # all of its parent directories exist.)
+
+    FILE="${1:-}"
+
+    if [[ -z "$FILE" ]]
+    then
+        logit "ERROR: find_vault() called with no filename"
+        exit 1
+    fi
+
+    if [[ ! -f "$FILE" ]]
+    then
+        logit "ERROR: '$FILE' file does not exist"
+        exit 1
+    fi
+
+    ########################################
+    # Start with the directory containing the file, and walk "up" until
+    # we find a directory which contains a '.obsidian' directory.
+
+    DIR="${FILE%/*}"
+    while [[ -n "${DIR}" ]]
+    do
+        ########################################
+        # Is this directory the root of a vault?
+
+        if [[ -d "${DIR}/.obsidian" ]]
+        then
+            echo "$DIR"
+            return
+        fi
+
+        ########################################
+        # No, try its parent directory
+
+        if [[ "$DIR" =~ / ]]
+        then
+            DIR="${DIR%/*}"
+
+            if [[ -n "$DIR" ]]
+            then
+                continue
+            fi
+        fi
+
+        ########################################
+        # Couldn't find a parent directory, we're not in a vault
+
+        logit "ERROR: could not find vault from '$FILE'"
+        exit 1
+    done
+}
+
+###############################################################################
+#
+# Extract a value from a JSON file.
+#
+# This will use 'jq' if it's available, and 'sed' if not. Using 'sed'
+# *appears* to be working for what this script needs, but you shouldn't
+# trust this as a general purpose JSON parser.
+
+function get_json_value {
+    ########################################
+    # Read parameters
+
+    FILE="${1:-}"
+    KEY="${2:-}"
+
+    if [[ -z "$FILE" ]]
+    then
+        logit "ERROR: get_json_value(): no filename specified"
+        exit 1
+    fi
+
+    if [[ -z "$KEY" ]]
+    then
+        logit "ERROR: get_json_value(): no JSON key specified"
+        exit 1
+    fi
+
+    ########################################
+    # Run the appropriate command
+
+    if type -t jq >/dev/null
+    then
+        RV="$( jq -r -M ".$KEY" "$FILE" )"
+    else
+        RV="$( sed -E -n "/.*\"$KEY\":/{s/.*\"$KEY\"[[:space:]]*:[[:space:]]*\"(.+)\".*/\1/p;}" "$FILE" )"
+    fi
+
+    ########################################
+    # Return the value, without a trailing newline
+
+    echo -n "$RV"
+}
+
+###############################################################################
+# Convert a date format string from the "moment.js" library's weird format,
+# to the standard "strftime()" format used by the "date" command (and almost
+# every other program for the past 40+ years).
+#
+# Note that not all tags can be converted, because some of the specifiers in
+# the "moment.js" library refer to things that I doubt people would use, or
+# because strftime() doesn't support them. Please let me know if any other
+# tags are needed, if I *can* add them I will.
+
+# The script will try to read the "Daily notes" plugin's "Date format"
+# configuration value, and convert it to a string which can be used with the
+# 'date' command. If you're using a date format where this conversion doesn't
+# work, you can use the '-d' option to specify the format by hand.
+#
+# Library used by the "Daily notes" plugin:
+#   https://momentjs.com/docs/#/displaying/format/
+# Library used by the 'date' command:
+#   https://www.man7.org/linux/man-pages/man3/strftime.3.html
+#
+#   moment.js           strftime()      Notes
+#   ----------------    -------------   -------------------------
+#   "YYYY-MM-DD"        "%Y-%m-%d"      "Daily notes" plugin's default format
+#   "YYYY-MM-DD ddd"    "%Y-%m-%d %a"   The format I use in my vaults
+
+
+
+function fix_date_format {
+    RV="$( echo "${1:-YYYY-MM-DD}" | perl -pe '
+        s/(?<![%Y])YYYY(?!Y)/%Y/   ;
+        s/(?<![%Y])YY(?!Y)/%y/     ;
+        s/(?<![%Y])Y(?!Y)/%Y/      ;
+
+        s/(?<![%M])MMMM(?!M)/%m/   ;
+        s/(?<![%M])MMM(?!M)/%b/    ;
+        s/(?<![%M])MM(?!M)/%m/     ;
+
+        s/(?<![%D])DDDD(?!D)/%j/   ;
+        s/(?<![%D])DD(?!D)/%d/     ;
+
+        s/(?<![%d])dddd(?!d)/%A/   ;
+        s/(?<![%d])ddd(?!d)/%a/    ;
+    ' )"
+
+    echo -n "$RV"
+}
+
+###############################################################################
+###############################################################################
+###############################################################################
+#
+# Parse the command line
+
+while getopts ':hc:d:il:n' OPT
+do
+    case $OPT in
+        h)  usage
+            ;;
+        c)  CHECKSUM_PROGRAM="${OPTARG}"
+            ;;
+        d)  DATE_FORMAT="${OPTARG}"
+            ;;
+        i)  LOG_IGNORED=true
+            ;;
+        l)  LOG_FILE="${OPTARG}"
+            ;;
+        n)  INCLUDE_LINK=false
+            ;;
+        *)  echo "ERROR: invalid option '-${OPTARG}'"
+            exit 1
+            ;;
+    esac
+done
+
+shift $(( OPTIND - 1 ))
+
+########################################
+# Get the filenames from the command line.
+
+UPDATED_FILE="${1:-}"
+OUTPUT_FILE="${2:-}"
+
+if [[ -z "$UPDATED_FILE" ]]
+then
+    logit "ERROR: no updated filename specified (check command line)"
+    exit 1
+fi
+
+if [[ -z "$OUTPUT_FILE" ]]
+then
+    logit "ERROR: no output filename specified (check command line)"
+    exit 1
+fi
+
+########################################
+# Make sure the source file exists and is readable.
+
+if [[ ! -f "$UPDATED_FILE" ]]
+then
+    logit "ERROR: updated file '$UPDATED_FILE' does not exist."
+    exit 1
+fi
+
+if [[ ! -r "$UPDATED_FILE" ]]
+then
+    logit "ERROR: updated file '$UPDATED_FILE' is not readable."
+    exit 1
+fi
+
+########################################
+# Make sure the output file's directory exists and is writable.
+
+OUTPUT_DIR="${OUTPUT_FILE%/*}"
+
+if [[ ! -d "${OUTPUT_DIR}" ]]
+then
+    logit "ERROR: output directory '${OUTPUT_DIR}' does not exist."
+    exit 1
+fi
+
+if [[ ! -w "${OUTPUT_DIR}" ]]
+then
+    logit "ERROR: output directory '${OUTPUT_DIR}' is not writable."
+    exit 1
+fi
+
+########################################
+# Find the root of the vault containing that file.
+
+VAULT="$( find_vault "${UPDATED_FILE}" )"
+
+########################################
+# Figure out what directory within the vault is used for Daily notes.
+
+DAILY_FOLDER="$( sed -E -n '/.*"folder":/{s/.*"folder"[[:space:]]*:[[:space:]]*"(.+)".*/\1/p;}' \
+    "${VAULT}/.obsidian/daily-notes.json" )"
+
+if [[ -n "${DAILY_FOLDER}" ]]
+then
+    DAILY_FOLDER="${DAILY_FOLDER}/"
+fi
+
+########################################
+# Figure out the date format used by the Daily notes plugin.
+
+if [[ -z "$DATE_FORMAT" ]]
+then
+    DAILY_FORMAT="$( sed -E -n '/.*"format":/{s/.*"format"[[:space:]]*:[[:space:]]*"(.+)".*/\1/p;}' \
+        "${VAULT}/.obsidian/daily-notes.json" )"
+    DATE_FORMAT="$( fix_date_format "${DAILY_FORMAT}" )"
+fi
+
+###############################################################################
+#
+# If the file being updated is not today's Daily note, exit.
+
+TODAY="$( date "+${DATE_FORMAT}" )"
+
+if [[ "${UPDATED_FILE}" != "${VAULT}/${DAILY_FOLDER}${TODAY}.md" ]]
+then
+    if $LOG_IGNORED
+    then
+        logit "'${UPDATED_FILE}' ignored"
+    fi
+    exit 0
+fi
+
+########################################
+# Figure out if the file in the shared drive needs to be copied or not.
+# - If the checksum file exists
+#   - and it contains today's filename
+#     - and the checksum itself is correct
+#       - then we don't need to copy the file
+
+CHECKSUM_FILE="${OUTPUT_FILE}.checksum"
+
+if [[ -f "$CHECKSUM_FILE" ]]
+then
+    if grep -q " ${UPDATED_FILE}\$" "${CHECKSUM_FILE}"
+    then
+        if "${CHECKSUM_PROGRAM}" --status -c "$CHECKSUM_FILE"
+        then
+            logit "copy-daily-note checksum is correct, no update needed"
+            exit 0
+        fi
+    fi
+fi
+
+###############################################################################
+#
+# Copy the file
+
+########################################
+# Start with a header that tells the readers when the file was copied
+
+QNOW="$( date '+%Y-%m-%d %H:%M:%S %Z' )"
+
+if $INCLUDE_LINK
+then
+    COPIED="[Copied from Obsidian](https://jms1.info/obsidian/copy-daily.html)"
+else
+    COPIED="Copied from Obsidian"
+fi
+
+cat > "${OUTPUT_FILE}" <<EOF
+# $TODAY
+$COPIED \`$QNOW\`
+
+---
+
+EOF
+
+########################################
+# Add the original file
+
+cat "${UPDATED_FILE}" >> "${OUTPUT_FILE}"
+
+########################################
+# Create/update the checksum file
+
+#pushd "${UPDATED_FILE%/*}"
+"${CHECKSUM_PROGRAM}" "${UPDATED_FILE}" > "${CHECKSUM_FILE}"
+#popd
+
+########################################
+# Log what we did
+
+logit "Updated ${OUTPUT_FILE}"
