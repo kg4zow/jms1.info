@@ -14,6 +14,7 @@
     - [CentOS 7 - Fix yum repos](linux/centos7-vault.md)
     - [colima - x86 Containers on ARM](linux/colima-arm-x86.md)
     - [Debian 10 on a Macbook Pro](linux/deb10-mac.md)
+    - [x86_64 Microarchitecture Levels](linux/x86-64-v.md)
 
 - [mdbook](mdbook/index.md)
     - [Creating a book](mdbook/create.md)
