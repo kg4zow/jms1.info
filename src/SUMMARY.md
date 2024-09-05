@@ -10,6 +10,12 @@
     - [Commit before new branch](git/move-commit.md)
     - [My Configuration](git/config.md)
 
+- [Keybase](keybase/index.md)
+    - [About Keybase Accounts](keybase/account.md)
+    - [Keybase on macOS](keybase/macos.md)
+    - [Before You Lose Access](keybase/before.md)
+    - [Lost Access](keybase/lost.md)
+
 - [Linux](linux/index.md)
     - [CentOS 7 - Fix yum repos](linux/centos7-vault.md)
     - [colima - x86 Containers on ARM](linux/colima-arm-x86.md)
