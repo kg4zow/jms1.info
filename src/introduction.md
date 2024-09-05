@@ -24,9 +24,13 @@ If you find one of these "bare bones" pages and *need* more information, feel fr
 
 These are pages I'm *planning* to write, but haven't done so yet.
 
-## Other Sites
+#### There's not a whole lot of content here.
 
-These are some other public web sites that I've written over the years.
+Like I mentioned above, I've been writing down random notes for over 20 years. I just started the current version of this site in 2024-06, it's going to take a while for me to find, organize, prioritize, and write the pages here. Plus I'm doing this in my spare time, I have a full-time job which keeps me pretty busy and, most days, makes me not want to even *look* at a computer when work is done.
+
+## My Other Sites
+
+These are *some* other public web sites that I've written over the years.
 
 * [`jms1.net`](https://jms1.net/) is my original "home page". It started off containing "everything", but over time I found that certain topics were taking enough space to justify moving them to their own sites.
 
@@ -36,16 +40,20 @@ These are some other public web sites that I've written over the years.
 
 * [`kg4zow.us`](https://kg4zow.us/) is my site about Amateur Radio (aka "ham radio"). I'm not as active on the air as I used to be, partly because I moved to a smaller city which doesn't have as many ham radio operators around, and partly because I don't have the time.
 
-* [`remarkable.jms1.info`](https://remarkable.jms1.info/) is a site I started for information about the [reMarkable tablets](https://remarkable.com/). It's a linux-based tablet which allows SSH-as-root out of the box, I've been writing my own programs to work with them *without* using reMarkable's cloud service.
+* [`remarkable.jms1.info`](https://remarkable.jms1.info/) is a site I started for information about the [reMarkable tablets](https://remarkable.com/). It's a Linux-based e-ink tablet with a textured screen that I find really nice to write on. One of the things I *really* like about it is that it allows SSH-as-root out of the box. I've been writing my own programs to work with them *without* using reMarkable's cloud service.
 
 * [`jekyll.jms1.info`](https://jekyll.jms1.info/) was my first attempt at writing *thi*s site. As the name suggests, I was using [Jekyll](https://jekyllrb.com/) to manage the content, but in 2024-06 I decided to re-do the entire site using [mdbook](https://rust-lang.github.io/mdBook/index.html), since I'm a lot more familiar with it (I use it to maintain about a dozen internal web sites for `$DAYJOB`), and because it's a lot easier to install, configure, and update on a new workstation.
 
 ## Contact
 
-The best way to reach me is to email `jms1@jms1.net`. If your message bounces (my server does some pretty aggressive spam-blocking), change `net` to `me` - that will also reach me, but it works through Apple's servers.
+The best way to reach me is to email `jms1@jms1.net`. If your message bounces (my server does some pretty aggressive spam-blocking), change `net` to `me` - that will also reach me, but it works through Apple's servers. Note that I don't always check personal email every day, so if you email me and I don't respond, please be patient.
 
 If you need an *immediate* response for some reason, or if you've found a problem with the information on this site, you can use [Keybase](https://keybase.io/) chat. My username there is `jms1`.
 
-> &#x26A0;&#xFE0F; **This is not an offer to provide free consulting services.**
+> &#x26A0;&#xFE0F; **This is not an offer to provide free consulting or support services.**
 >
 > My idea of what constitutes an emergency is probably not the same as yours. For example, if *your* mail server is down, that almost certainly doesn't affect *me* at all, unless you're offering to pay me for my time.
+
+## About this site
+
+I'm writing this site as a collection of [Markdown](https://daringfireball.net/projects/markdown/) files, converting them to static HTML files using [mdbook](https://rust-lang.github.io/mdBook/) with some [customizations](https://github.com/kg4zow/mdbook-template), tracking the changes using [git](https://git-scm.com/), and hosting the finished site using [Keybase Sites](https://book.keybase.io/sites).
