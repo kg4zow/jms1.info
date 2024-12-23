@@ -15,6 +15,7 @@
     - [Keybase on macOS](keybase/macos.md)
     - [Before You Lose Access](keybase/before.md)
     - [Lost Access](keybase/lost.md)
+    - [Keybase Sites](keybase/sites.md)
 
 - [Linux](linux/index.md)
     - [CentOS 7 - Fix yum repos](linux/centos7-vault.md)
