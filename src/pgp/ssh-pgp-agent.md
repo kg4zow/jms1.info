@@ -33,7 +33,9 @@ yum install openssh-clients gnupg2 gnupg2-smime
 
 #### Debian, Ubuntu, etc.
 
-I'm using Xubuntu 18.04 on a few workstations at home. The commands I use to configure SSH to use `gpg-agent` on these machines are...
+I *used to* use Xubuntu 18.04 on a few workstations at home, I'm using Debian 12 now. The commands which install the software are the same.
+
+The commands I use to configure SSH to use `gpg-agent` on these machines are...
 
 ```
 sudo apt install scdaemon gpg-agent
@@ -41,12 +43,18 @@ sudo apt install scdaemon gpg-agent
 mkdir -p ~/.gnupg
 echo use-agent >> ~/.gnupg/gpg.conf
 echo enable-ssh-support >> ~/.gnupg/gpg-agent.conf
+```
 
+In addition, I had to tell XFCE *not* to start `ssh-agent` when setting up the desktop session when I log in. Those commands were:
+
+```
 xfconf-query -c xfce4-session -p /compat/LaunchGNOME -n -t bool -s false
 xfconf-query -c xfce4-session -p /startup/ssh-agent/enabled -n -t bool -s false
 ```
 
-If you're curious, [this document](https://keybase.pub/jms1/notes/xubuntu/laptop-setup.md) is my checklist for setting up Xubuntu. Unfortulately Keybase doesn't render Markdown to HTML like my web server does, but Markdown is pretty easy to read on its own.
+If you're curious, [this document](https://jms1.pub/notes/xubuntu/laptop-setup.md) (from 2020) was my checklist for setting up Xubuntu. The document is still useful, although some of it may no longer be relevant to me. At some point I plan to update the info for Debian and include it on this site.
+
+Unfortunately [Keybase Sites](https://book.keybase.io/sites) doesn't render Markdown to HTML, but Markdown is pretty easy to read on its own.
 
 #### Other Linux distros
 
@@ -451,6 +459,11 @@ However, there are a few things to be aware of.
 
 # Changelog
 
+**2024-12-23** jms1
+
+- found/fixed links to old `keybase.pub` site
+- tweaked info about Debian (I no longer use Xubuntu)
+
 **2024-06-19** jms1
 
 - moved page to new `jms1.info` site, updated header
@@ -482,7 +495,7 @@ However, there are a few things to be aware of.
 
 **2019-09-01** jms1
 
-- last version updated on [Keybase](https://keybase.pub/jms1/notes/Yubikey/make-ssh-use-gpg-agent.md)
+- last version updated on Keybase ([corrected link](https://jms1.pub/notes/Yubikey/make-ssh-use-gpg-agent.md))
 
 **Older** jms1
 
