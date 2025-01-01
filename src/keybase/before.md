@@ -28,15 +28,49 @@ I know I said it above, but I'll say it again.
 
 &#x1F6D1; **MAKE SURE YOUR KEYBASE ACCOUNT HAS MULTIPLE DEVICES ON IT.** &#x1F6D1;
 
+### View devices on your account
+
+If you're not sure what devices are on your account, there are three ways to find out:
+
+* Command line
+
+    ```
+    keybase device list
+    ```
+
+    This will show a list of the active devices on YOUR account, along with each device's internal ID, the date/time when it was added to the account, and the last time the device was used.
+
+* Keybase GUI client
+
+    In the bar along the left side of the window, click "Devices" near the bottom.
+
+* Web site
+
+    Visit `https://keybase.io/USERNAME/devices`
+
+**The list of devices on each Keybase account is public information.** The device records are stored on a blockchain which is, by design, publicly accessible and publicly verifiable.
+
+Anybody can access the web site, even people who don't use Keybase. For example, if you're curious, [`https://keybase.io/jms1/devices`](https://keybase.io/jms1/devices) is the list of devices on my account.
+
 ### Adding devices to your account
 
 Keybase has clients for Linux, macOS, ms-windows, Android, and iOS. Their web site has directions for how to [download and install the software](https://keybase.io/download), as well as how to add the device to your existing account.
 
 If you don't physically *have* a second device that you can install Keybase on, you can create a "paper key".
 
-In fact, even if you have a dozen devices with Keybase installed, you should create a paper key.
+In fact, **even if you have a dozen physical devices on your Keybase account, you should create a paper key**.
 
-If you don't know what devices are on your account, check the "Devices" tab in your Keybase app, or visit `https://keybase.io/___/devices` (substitute your username where you see `___` in the URL).
+### Removing devices from your account
+
+* Command line
+
+    First use `keybase device list` to find the internal ID of the device you want to remove.
+
+    Then use `keybase device remove` with that ID.
+
+    ```
+    keybase device remove 0123456789abcdef0123456789abcdef
+    ```
 
 ## Paper Keys
 
@@ -49,10 +83,12 @@ Obviously "safe" means that other people shouldn't be able to access it, but you
 As an example, the paper keys for my own Keybase accounts are ...
 
 * Written down on paper and stored in a fire safe at home. The paper itself has nothing on it but a collection of random words, so if somebody manages to break into the safe, they won't immediately know what the words are for - all they'll see is a collection of random words.
+
 * In a text file, stored on an encrypted USB stick, also stored in the fire safe at home.
+
 * On another encrypted USB stick, physically stored with a family member in a different part of the world.
 
-This means if something happens to my house, up to and including permanent destruction, I *can* get the backup copies of the paperkeys from this family member. It might *take* a few days, but I wouldn't be *permanently* locked out of my accounts.
+This means if something happens to my house, up to and including permanent destruction, I *can* get the backup copies of the paperkeys from this family member. It might *take* a few days to get that USB stick, but I wouldn't be *permanently* locked out of my accounts.
 
 ## Resetting Your Account
 
@@ -60,7 +96,7 @@ The Keybase web site offers a way to "reset" your account. They do warn about th
 
 > &#x1F6D1; **Resetting your account starts a new account with the same username.**
 >
-> If you do this, you will *permanently* lose accesss to the content stored in the old account.
+> If you do this, you will *immediately and permanently* lose accesss to all content encrypted using the device keys from the old account.
 >
 > Even if you later find one of the old devices, it won't be able to log into your Keybase account anymore.
 
@@ -92,7 +128,7 @@ Of course, if your account is in Lockdown Mode and you lose all of the devices, 
 
 > &#x2139;&#xFE0F; **All of my Keybase accounts have "Lockdown mode" turned on.**
 >
-> I'm okay with this, because I have paperkeys stored securely.
+> I'm okay with this, because I know that I have paperkeys stored securely.
 
 
 # Checklist
@@ -103,7 +139,11 @@ Of course, if your account is in Lockdown Mode and you lose all of the devices, 
 
 * Check your devices every so often. (I check mine every few months.)
 
-    * Check the list of devices. You can see this in the Keybase client, or by visiting `https://keybase.io/USERNAME/devices` (substitute your own Keybase username for `USERNAME`, obviously). Make sure that the devices you *think* are on the account, are actually there. Also make sure that your account doesn't have any devices which shouldn't be there.
+    * Check the list of devices. You can see this in the Keybase client, or by visiting `https://keybase.io/USERNAME/devices` (substitute your own Keybase username for `USERNAME`, obviously).
+
+        * Make sure that the devices you *think* are on the account, are actually there.
+        * Make sure that your account doesn't have any devices you don't recognize.
+        * Make sure that any devices you *used* to use, but no longer use, are removed.
 
     * For phones, tablets, or computers that you may not use every day, make sure their software is up to date (especially the Keybase client itself), and that they are able to log into the account.
 
