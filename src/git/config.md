@@ -133,42 +133,9 @@ Random notes relating to `git`
 
 ## Commits signed with SSH keys
 
-**If you're using 2.34.0 or later** you may see this error message work working with repos where others users may have signed commits using SSH keys instead of PGP keys.
+There used to be a brief explanation here, I've moved this to its own page.
 
-```
-error: gpg.ssh.allowedSignersFile needs to be configured and exist for ssh signature verification
-```
-
-[Reference](https://blog.dbrgn.ch/2021/11/16/git-ssh-signatures/)
-
-`git` 2.34.0 added the ability to sign commits using SSH keys. This functionality is related to how OpenSSH implements "SSH certificates". I've looked into this in the past, but it seems to be a lot more trouble than it's worth.
-
-> I don't really see the need for this, other than "some people can't, or don't want to, take the time to figure out PGP" ... but unfortunately, it's something we have to deal with, especially when you're working with shared repos (where other people are making commits).
-
-Because these are not PGP keys, there is no concept of a "web of trust", so `git` has no way to tell if a signature created using an SSH key should be trusted or not. In order to work around this problem, `git` can be configured with a filename that, *if it exists*, will contain a list of email addresses and the SSH public keys which should be "trusted" for commits signed using those emails.
-
-The file format is documented in the `ssh-keygen(1)` man page, in the "`ALLOWED SIGNERS`" section (near the end of the page). In most cases, each line will be an email address, followed by the public key's line from an `authorized_keys` file, like so:
-
-```
-jms1@jms1.net ssh-rsa AAAAB3Nz...Pw== jms1@jms1.net 2019-03-21 YubiKey Blue
-jms1@domain.xyz ssh-ed25519 AAAAC3Nz...YDQu jms1@domain.xyz 2022-01-24 YubiKey Green
-```
-
-### Configure SSH Signature Verification
-
-If you are using `git` 2.34.0 or later and are seeing this message, you can make it go away by doing the following:
-
-* Configure a filename which, *if it exists*, will contain the list of known email addresses and SSH keys.
-
-    ```
-    git config --global gpg.ssh.allowedSignersFile "$HOME/.config/git/allowed_signers"
-    ```
-
-    Note that the file itself doesn't have to exist - just having this option present in your `$HOME/.gitconfig` file is enough to prevent the error message from being shown.
-
-    &#x26A0;&#xFE0F; This is included in the list at the top of the page.
-
-* If you work with people who use SSH keys to sign commits, you can *create* a `$HOME/.config/git/allowed_signers` file and add the email addresses and SSH public keys, in the format shown above.
+&#x21D2; [Signing commits with SSH keys](ssh.md)
 
 ## Configuration scope
 
@@ -184,6 +151,11 @@ The `git config` command operates on different files, depending on which options
 
 
 # Changelog
+
+### 2025-04-30 jms1
+
+* Fixed a typo
+* Removed info about git commits signed by SSH keys, since there's now a dedicated page for that
 
 ### 2024-06-20 jms1
 

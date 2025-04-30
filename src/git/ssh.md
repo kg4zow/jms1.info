@@ -236,3 +236,9 @@ If you don't want to see this message, there are a few options:
     ```
 
     This is just like setting up an Allowed Signers file and leaving it empty, except that you don't have to *create* the file at all. The `/dev/null` file always exists on macOS and Linux systems, and if anything (including `git`) tries to read data from it, it will act like any other empty file.
+
+# Changelog
+
+### 2025-04-30 jms1
+
+* Created page
