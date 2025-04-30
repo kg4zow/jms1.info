@@ -9,6 +9,7 @@
 - [git](git/index.md)
     - [Commit before new branch](git/move-commit.md)
     - [My Configuration](git/config.md)
+    - [Signing commits with SSH keys](git/ssh.md)
 
 - [Keybase](keybase/index.md)
     - [About Keybase Accounts](keybase/account.md)
