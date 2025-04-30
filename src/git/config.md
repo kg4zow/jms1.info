@@ -120,7 +120,7 @@ git config --global alias.tree1 "log --date-order --decorate --graph --no-show-s
 
 ### Sign commits using specific keys
 
-These aliases allow me to sign commits using my personal PGP key on the work machine, or vice-versa, by physically [plugging the correct Yubikey](../pgp/ssh-pgp-agent.md) into the machine. By themselves they won't be very useful to anybody else, but they could be useful as examples if you have to deal with
+These aliases allow me to sign commits using my personal PGP key on the work machine, or vice-versa, by physically [plugging the correct Yubikey](../pgp/ssh-pgp-agent.md) into the machine. By themselves they won't be very useful to anybody else, but they could be useful as examples if you need to use different keys for different repos.
 
 ```
 git config --global alias.commitp "commit --gpg-sign=E3F7F5F76640299C5507FBAA49B9FD3BB4422EBB --author='John Simpson <jms1@jms1.net>'"
