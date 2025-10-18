@@ -12,6 +12,7 @@ title                   = "jms1.info"
 [output.html]
 additional-css          = [ "section-lines.css" , "version-commit.css" ]
 curly-quotes            = false
+git-repository-url      = "https://github.com/kg4zow/jms1.info"
 no-section-label        = true
 default-theme           = "rust"
 preferred-dark-theme    = "ayu"
