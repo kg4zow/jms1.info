@@ -1,0 +1,236 @@
+#!/usr/bin/env perl
+#
+# colors
+# John Simpson <jms1@jms1.net> 2007-09-something
+# Last updated 2025-10-04
+#
+# Quick-n-dirty script to show the ANSI colour sequences, and what they
+# end up looking like on whatever kind of terminal you're using.
+#
+###############################################################################
+#
+# The MIT License (MIT)
+#
+# Copyright (C) 2007-2025 John Simpson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the “Software”),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+###############################################################################
+
+require 5.003 ;
+use strict ;
+use warnings ;
+
+use Getopt::Std ;
+
+my %opt         = () ;      # getopts
+my $show_256    = 0 ;       # -e
+my $show_256_bg = '' ;      # -E:
+my $show_true   = 0 ;       # -t
+my $true_width  = 79 ;      # -w:
+
+###############################################################################
+#
+# usage
+
+sub usage(;$)
+{
+    my $msg = ( shift || '' ) ;
+
+    print <<EOF ;
+$0 [options]
+
+Print a grid showing what different ANSI colour sequences look like in the
+current terminal.
+
+-e      Also show 256-colour codes. Fair warning, this is a LOT of output.
+        If you pipe the output through `less -R` you can scroll through it.
+
+-E ___  Show the 256-colour codes for a single background colour. Requires
+        a value between 0 and 255.
+
+-t      Also show 24-bit true colours. This will be just one line with a
+        "rainbow" background.
+
+-w ___  Specify the width of the "true colour"
+
+-h      Show this help message.
+
+EOF
+
+    if ( $msg ne '' )
+    {
+        print $msg ;
+        exit 1 ;
+    }
+
+    exit 0 ;
+}
+
+###############################################################################
+###############################################################################
+###############################################################################
+#
+# Parse command line
+
+getopts( 'eE:htw:' , \%opt ) ;
+$opt{'h'} && usage() ;
+$show_256   = ( $opt{'e'} ? 1 : 0 ) ;
+$show_true  = ( $opt{'t'} ? 1 : 0 ) ;
+$true_width = ( $opt{'w'} || $true_width ) ;
+
+########################################
+# The -E option needs to be handled differently, because '0' and '' mean
+# different things.
+
+if ( defined $opt{'E'} )
+{
+    $show_256_bg = $opt{'E'} ;
+}
+
+if ( $show_256_bg ne '' )
+{
+    if ( $show_256_bg !~ m|^\d+$| )
+    {
+        usage "ERROR: -E value must be a number between 0 and 255\n" ;
+    }
+
+    if ( $show_256_bg > 255 )
+    {
+        usage "ERROR: -E value must be a number between 0 and 255\n" ;
+    }
+
+    $show_256 = 1 ;
+}
+
+###############################################################################
+#
+# Show normal output
+
+print "ESC [ xxx m\n\n" ;
+
+for my $fg ( 0 .. 7 )
+{
+    printf "\x1B[0;%dm %3s " , $fg ,"0;$fg" ;
+}
+
+print "\x1B[0m\n\n" ;
+
+for my $bg ( 40 .. 47 )
+{
+    for my $fg ( 30 .. 37 )
+    {
+        printf "\x1B[0;%d;%dm %7s " , $fg , $bg ,"0;$fg;$bg" ;
+    }
+    print "\x1B[0m\n" ;
+}
+
+print "\n" ;
+
+for my $bg ( 40 .. 47 )
+{
+    for my $fg ( 30 .. 37 )
+    {
+        printf "\x1B[0;1;%d;%dm %7s " , $fg , $bg ,"1;$fg;$bg" ;
+    }
+    print "\x1B[0m\n" ;
+}
+
+print "\n" ;
+
+for my $n ( 3 .. 6 )
+{
+    print "ESC # ${n} => \x1B#${n}This is a test.\n" ;
+}
+
+###############################################################################
+#
+# Maybe show 256-colour output
+
+if ( $show_256 )
+{
+    my $bg1 = 0 ;
+    my $bg2 = 255 ;
+
+    if ( $show_256_bg ne '' )
+    {
+        $bg1 = $bg2 = $show_256_bg ;
+    }
+
+    ########################################
+    # Full grid, all 256x256
+
+    print "\n" , "=" x 79 , "\n256 colour palette\n" ;
+    print "ESC [ 38 ; 5 ; FG ; 48 ; 5 ; BG m\n\n" ;
+
+    for my $bg ( $bg1 .. $bg2 )
+    {
+        for my $fg ( 0 .. 255 )
+        {
+            if ( ( $fg % 16 ) == 0 )
+            {
+                printf "%4d " , $bg ;
+            }
+
+            printf "%s%4d %s" , "\x1B[38;5;$fg;48;5;${bg}m" , $fg , "\x1B[0m" ;
+
+            if ( ( $fg % 16 ) == 15 )
+            {
+                print "\n" ;
+            }
+        }
+
+        print "\n" ;
+    }
+}
+
+###############################################################################
+#
+# Maybe show 24-bit colour output
+
+if ( $show_true )
+{
+    ########################################
+    # Quick example, 24-bit colour
+
+    print <<EOF ;
+===============================================================================
+24-bit true colour
+ESC [ 38 ; 2 ; R ; G ; B m  foreground (RGB values 0-255)
+ESC [ 48 ; 2 ; R ; G ; B m  background (RGB values 0-255)
+
+EOF
+
+    for my $c ( 0 .. ( $true_width - 1 ) )
+    {
+        my $r = 255 - ( $c * 255 / $true_width ) ;
+        my $g = ( $c * 510 / $true_width ) ;
+        my $b = ( $c * 255 / $true_width ) ;
+        if ( $g > 255 )
+        {
+            $g = 510 - $g ;
+        }
+
+        printf "\x1B[48;2;%d;%d;%dm" , $r , $g , $b ;
+        printf "\x1B[38;2;%d;%d;%dm" , 255 - $r , 255 - $g , 255 - $b ;
+        printf ( ( $c % 2 ) ? '\\' : '/' ) ;
+    }
+
+    print "\x1B[0m\n\n" ;
+}

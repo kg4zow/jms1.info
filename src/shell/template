@@ -1,0 +1,269 @@
+#!/bin/bash
+#
+# script-name
+# Author <email@example.com> 2020-02-02
+# Last updated 2025-10-03
+#
+# Quick description of what the script does.
+#
+###############################################################################
+#
+# This script: (license)
+#
+# Copyright (C) 2025 whoever
+#
+# Details about this script's licensing
+#
+###############################################################################
+#
+# Original script template: MIT License
+#
+# Copyright (C) 2025 John Simpson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+###############################################################################
+
+set -e
+
+PATH="/usr/bin:/bin"
+
+########################################
+# Global variables
+#   MYDIR   '/Users/jms1/bin'
+#   MYNAME  'xyzzy'
+#   MYSELF  '/Users/jms1/bin/xyzzy'
+
+MYDIR="$( cd -- "$( dirname -- "$0" )" >/dev/null 2>&1 ; pwd -P )"
+MYNAME="$( basename -- "$0" )"
+MYSELF="$MYDIR/$MYNAME"
+
+########################################
+# Directories used by the script itself
+# https://specifications.freedesktop.org/basedir-spec/latest/
+
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/${MYNAME}"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/${MYNAME}"
+DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/${MYNAME}"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/${MYNAME}"
+
+CONFIG_FILE="${CONFIG_DIR}/${MYNAME}.conf"
+
+###############################################################################
+#
+# Coloured line functions
+
+function redline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;41m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "***** $* *****"
+    fi
+}
+
+function yellowline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;30;43m%s\e[K\e[0m\n" "$*"
+    else
+        echo "===== $* ====="
+    fi
+}
+
+function blueline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;44m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "===== $* ====="
+    fi
+}
+
+function greenline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;42m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "----- $* -----"
+    fi
+}
+
+function cyanline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;46m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "===== $* ====="
+    fi
+}
+
+function purpleline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;45m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "===== $* ====="
+    fi
+}
+
+function whiteline {
+    if [[ -t 1 ]]
+    then
+        printf "\e[0;1;37;47m%s\e[0K\e[0m\n" "$*"
+    else
+        echo "===== $* ====="
+    fi
+}
+
+function fail {
+    redline "$@"
+    exit 1
+}
+
+###############################################################################
+#
+# Maybe print a command before executing it
+
+SET_X="${SET_X:-false}"
+
+function set_x {
+    local IFS=' '
+    if [[ "${SET_X:-false}" == "true" ]]
+    then
+        cyanline "$PS4$*" 1>&2
+    fi
+    "$@"
+}
+
+########################################
+# Show the same output that set_x would show,
+# but don't actually run the command
+
+function show_x {
+    local IFS=' '
+    if [[ "${SET_X:-false}" == "true" ]]
+    then
+        cyanline "$PS4$*" 1>&2
+    fi
+}
+
+###############################################################################
+#
+# Debugging messages
+
+DO_DEBUG="${DO_DEBUG:-false}"
+
+function debug {
+    if [[ "${DO_DEBUG:-false}" == "true" ]]
+    then
+        yellowline "$*"
+    fi
+}
+
+###############################################################################
+#
+# Usage
+# - https://docopt.org/ is the "standard" for how to describe options
+
+function usage {
+    local MSG="${*:-}"
+
+    cat <<EOF
+$0 [OPTIONS] [ARGS]
+
+Detailed description of what the script does.
+
+-b      Enable BVAR
+
+-s ___  Specify SVAR
+
+-x      Show the important commands before executing them.
+
+-D      Show debugging messages.
+
+-h      Show this help message.
+
+Note: two arguments are required in order to do anything.
+
+EOF
+
+    if [[ -n "$MSG" ]]
+    then
+        fail "$MSG"
+    fi
+
+    exit 0
+}
+
+###############################################################################
+###############################################################################
+###############################################################################
+#
+# Process the command line
+
+BVAR=false
+SVAR="(default)"
+
+while getopts ':hbs:xD' OPT
+do
+    case $OPT in
+        h)  usage
+            ;;
+        b)  BVAR=true
+            ;;
+        s)  SVAR="$OPTARG"
+            ;;
+        x)  SET_X=true
+            ;;
+        D)  DO_DEBUG=true
+            ;;
+        *)  usage "ERROR: unknown option '-${OPTARG}'"
+            ;;
+    esac
+done
+
+shift $(( OPTIND - 1 ))
+
+ARG1="${1:-}"
+ARG2="${2:-}"
+
+if [[ -z "$ARG1" ]]
+then
+    usage
+fi
+
+if [[ -z "$ARG2" ]]
+then
+    usage "ERROR: missing ARG2"
+fi
+
+###############################################################################
+#
+# Do the things
+
+echo "MYDIR='${MYDIR}'"
+echo "MYNAME='${MYNAME}'"
+echo "MYSELF='${MYSELF}'"
+echo "CONFIG_DIR='${CONFIG_DIR}'"
+echo "CONFIG_FILE='${CONFIG_FILE}'"
+echo "BVAR='${BVAR}'"
+echo "SVAR='${SVAR}'"
+echo "ARG1='${ARG1}'"
+echo "ARG2='${ARG2}'"

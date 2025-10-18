@@ -8,6 +8,7 @@
 
 - [git](git/index.md)
     - [Commit before new branch](git/move-commit.md)
+    - [Multiple Remote URLs](git/multi-remote.md)
     - [My Configuration](git/config.md)
     - [Signing commits with SSH keys](git/ssh.md)
 
@@ -47,8 +48,12 @@
 - [Random](random/index.md)
     - [Upside-Down Characters](random/upside-down.md)
 
-- [Shell scripting](shell/index.md)
+- [Shell Scripting](shell/index.md)
+    - [Cheat](shell/cheat.md)
+    - [Colored line functions](shell/lines.md)
+    - [Colors](shell/colors.md)
     - [set_x](shell/set_x.md)
+    - [Template](shell/template.md)
 
 - [Yubikey](yubikey/index.md)
     - [Loading PGP Keys on a Yubikey](yubikey/load-pgp-key.md)
