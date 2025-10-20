@@ -1,6 +1,6 @@
 # Shell Scripting
 
-I've been writing shell scripts since the early 1990's. Over the years I've built up a collection of useful functions and one-liners, that others might find useful.
+I've been writing shell scripts since the early 1990's. Over the years I've built up a collection of useful scripts, functions and one-liners, that others might find useful.
 
 ## My Shell Setup
 
