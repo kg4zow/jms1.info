@@ -18,6 +18,16 @@ cheat template > new-script
 
 This creates the "skeleton" of a shell script, with most of the functions I end up using in 95% of my scripts, arleady in place. This lets me concentrate on making the script do what I need it to do, and then once it's working, I *remove* the bits I ended up not needeing.
 
+### My Cheatsheets
+
+I've started a small collection of cheatsheets. In addition to recording command line options, I'm also using it to store functions that I use when writing shell and Perl scripts.
+
+In particular, my [`template` cheatsheet](https://github.com/kg4zow/jms1-cheatsheets/blob/main/cheatsheets/template) is what I use to *start* a new shell script, it already contains most of the functions I end up using for shell scripts. Whatever I end up *not* needing for the script I'm writing, I normally remove when the script is finished.
+
+I don't know that they'll be useful to anybody else, but if you're curious, there's a copy of them on Github.
+
+&#x21D2; [kg4zow/jms1-cheatsheets](https://github.com/kg4zow/jms1-cheatsheets)
+
 
 ## My Configuration
 
