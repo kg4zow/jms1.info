@@ -16,6 +16,7 @@ default-theme           = "rust"
 preferred-dark-theme    = "ayu"
 smart-punctuation       = false
 input-404               = "404.md"
+hash-files              = false
 
 [preprocessor.version-commit]
 renderers               = [ "html" ]
