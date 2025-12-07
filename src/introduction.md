@@ -12,7 +12,7 @@ And if other people find the information on this site useful, then ... I'm glad 
 
 ## Notes
 
-#### Some pages may not be complete.
+**Some pages may not be complete.**
 
 The first part of how I add pages to this site is to just copy an existing Markdown file. A lot of the original files I'm copying here will contain very basic bare-bones information, enough for me to understand (usually), but possibly not useful to others. (Part of why I'm adding them here is to add the more human-friendly explanations, both for others, and for myself a year from now when I've forgotten all this.)
 
@@ -20,13 +20,14 @@ When I do this, my intention is to go back and add more detailed information to 
 
 If you find one of these "bare bones" pages and *need* more information, feel free to let me know.
 
-#### Some of the links on the left may not exist.
+**Some of the links on the left may not exist.**
 
 These are pages I'm *planning* to write, but haven't done so yet.
 
-#### There's not a whole lot of content here.
+**There's not a whole lot of content here.**
 
-Like I mentioned above, I've been writing down random notes for over 20 years. I just started the current version of this site in 2024-06, it's going to take a while for me to find, organize, prioritize, and write the pages here. Plus I'm doing this in my spare time, I have a full-time job which keeps me pretty busy and, most days, makes me not want to even *look* at a computer when work is done.
+This is starting to not be the case anymore, but as I mentioned above, I've been writing down and keeping random notes for over 20 years. I started the current version of this site in 2024-06, it's going to take a while for me to find, organize, prioritize, and write the pages here. Plus I'm doing this in my spare time, I have a full-time job which keeps me pretty busy and, most days, makes me not want to even *look* at a computer when work is done.
+
 
 ## My Other Sites
 
@@ -36,13 +37,14 @@ These are *some* other public web sites that I've written over the years.
 
 * [`qmail.jms1.net`](https://qmail.jms1.net/) is my web site about [Qmail](https://cr.yp.to/qmail.html). When I started using qmail I took several other patches and combined them into a single patch, and I put the patch on the `jms1.net` site. People started using my combined patch and asking questions about it, so I moved all of the qmail-related content to its own web site.
 
-    Unfortunately I haven't had time to maintain the site (or the combined patch) since returning to the world of full-time employment (I was an independent contractor at the time).
+    I was making my living as an independent contractor at the time, and unfortunatlely, since returning to the world of full-time employment, I haven't had time to maintain the site (or the combined patch). If you're building a mail server I still recommend qmail, but I don't really recommend my own combined patch anymore, because it *is* so far out of date.
 
 * [`kg4zow.us`](https://kg4zow.us/) is my site about Amateur Radio (aka "ham radio"). I'm not as active on the air as I used to be, partly because I moved to a smaller city which doesn't have as many ham radio operators around, and partly because I don't have the time.
 
 * [`remarkable.jms1.info`](https://remarkable.jms1.info/) is a site I started for information about the [reMarkable tablets](https://remarkable.com/). It's a Linux-based e-ink tablet with a textured screen that I find really nice to write on. One of the things I *really* like about it is that it allows SSH-as-root out of the box. I've been writing my own programs to work with them *without* using reMarkable's cloud service.
 
-* [`jekyll.jms1.info`](https://jekyll.jms1.info/) was my first attempt at writing *thi*s site. As the name suggests, I was using [Jekyll](https://jekyllrb.com/) to manage the content, but in 2024-06 I decided to re-do the entire site using [mdbook](https://rust-lang.github.io/mdBook/index.html), since I'm a lot more familiar with it (I use it to maintain about a dozen internal web sites for `$DAYJOB`), and because it's a lot easier to install, configure, and update on a new workstation.
+* [`jekyll.jms1.info`](https://jekyll.jms1.info/) was my first attempt at writing *thi*s site. As the name suggests, I was using [Jekyll](https://jekyllrb.com/) to manage the content, but in 2024-06 I decided to re-do the entire site using [mdbook](https://rust-lang.github.io/mdBook/index.html), since I'm a lot more familiar with it (I use it to maintain half a dozen internal web sites for `$DAYJOB`), and because it's a lot easier to install, configure, and update on a new workstation. Plus, it makes more sense to me to organize the pages by subject rather than by date.
+
 
 ## Contact
 
