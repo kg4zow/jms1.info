@@ -25,6 +25,9 @@
     - [Debian 10 on a Macbook Pro](linux/deb10-mac.md)
     - [x86_64 Microarchitecture Levels](linux/x86-64-v.md)
 
+- [macOS](macos/index.md)
+    - [SSH Post-Quantum Encryption](macos/pq.md)
+
 - [mdbook](mdbook/index.md)
     - [Creating a book](mdbook/create.md)
     - [Adding commit/date info](mdbook/commit-info.md)
