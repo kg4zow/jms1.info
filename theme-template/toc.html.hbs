@@ -37,6 +37,7 @@
     <body class="sidebar-iframe-inner">
 
 <!-- Start content above ToC -->
+    <a href='https://github.com/kg4zow/mdbook-template/'>Github Repo</a>
 <!-- End content above ToC -->
 
         {{#toc}}{{/toc}}
@@ -45,11 +46,14 @@
     <hr/>
     <div class="part-title">Version</div>
     <div id="commit" class='version-commit-div'>
-        <span class='version-commit-hash'><tt>@VERSION_COMMIT_HASH@</tt></span><br/>
-        <span class='version-commit-time'><tt>@VERSION_COMMIT_TIME@</tt></span>
+        <span class='version-commit-time'><tt>@VERSION_COMMIT_HASH@</tt></span>
+        <br/>
+        <span class='version-commit-hash'><tt>@VERSION_COMMIT_TIME@</tt></span>
     </div>
     <div class="part-title">Generated</div>
     <div id="generated" class='version-commit-div'>
+        <span class='version-commit-ver'>using <a href='https://rust-lang.github.io/mdBook/'><tt>@VERSION_COMMIT_MDBOOK@</tt></a></span>
+        <br/>
         <span class='version-commit-now'><tt>@VERSION_COMMIT_NOW@</tt></span>
     </div>
 <!-- End version-commit content below ToC -->
@@ -57,4 +61,4 @@
 
     </body>
 </html>
-<!-- mdbook-fix-templates v0.3.0 2025-12-03 - mdbook v0.5.1 -->
+<!-- mdbook-fix-templates v0.4.0 2025-12-12 - mdbook v0.5.1 -->
