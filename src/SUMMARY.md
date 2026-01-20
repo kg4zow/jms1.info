@@ -6,6 +6,12 @@
 
 # Technical
 
+- [Clockwork Pi uConsole](uconsole/index.md)
+    - [Cases](uconsole/cases.md)
+    - [Power](uconsole/power.md)
+        - [Battery Calibration](uconsole/battery-calibration.md)
+    - [Software](uconsole/software.md)
+
 - [git](git/index.md)
     - [Commit before new branch](git/move-commit.md)
     - [Multiple Remote URLs](git/multi-remote.md)
