@@ -1,12 +1,31 @@
 /* Entire div containing commit info */
 
+.version-commit-div-x {
+    width       : 100% ;
+}
+
 .version-commit-div-l {
     font-size   : 70% ;
+    float       : left ;
+    width       : 30% ;
+}
+
+.version-commit-div-c {
+    font-size   : 70% ;
+    width       : 100% ;
+    margin      : 0 auto ;
+    text-align  : center ;
 }
 
 .version-commit-div-r {
     font-size   : 70% ;
+    float       : right ;
+    width       : 30% ;
     text-align  : right ;
+}
+
+.version-commit-div-toc {
+    font-size   : 70% ;
 }
 
 /* In case individual elements need to be customized */
