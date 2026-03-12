@@ -1,5 +1,10 @@
 /* Entire div containing commit info */
 
+:root {
+    /* must be >= width of button */
+    --version-commit-center-width : 217px ;
+}
+
 .version-commit-div-x {
     width       : 100% ;
 }
@@ -7,12 +12,12 @@
 .version-commit-div-l {
     font-size   : 70% ;
     float       : left ;
-    width       : 30% ;
+    width       : calc( ( 100% - var(--version-commit-center-width) ) / 2 ) ;
 }
 
 .version-commit-div-c {
     font-size   : 70% ;
-    width       : 100% ;
+    width       : var(--version-commit-center-width) ;
     margin      : 0 auto ;
     text-align  : center ;
 }
@@ -20,7 +25,7 @@
 .version-commit-div-r {
     font-size   : 70% ;
     float       : right ;
-    width       : 30% ;
+    width       : calc( ( 100% - var(--version-commit-center-width) ) / 2 ) ;
     text-align  : right ;
 }
 

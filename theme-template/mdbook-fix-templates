@@ -2,7 +2,7 @@
 #
 # mdbook-fix-templates
 # jms1 2022-04-05
-my $VERSION = 'v0.4.0 2025-12-12' ;
+my $VERSION = 'v0.5.0 2026-03-12' ;
 #
 # Copy or update mdbook template files for "books".
 #
@@ -15,7 +15,7 @@ my $VERSION = 'v0.4.0 2025-12-12' ;
 #
 # MIT License
 #
-# Copyright (c) 2022-2025 John Simpson
+# Copyright (c) 2022-2026 John Simpson
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,22 +48,27 @@ use LWP::UserAgent ;
 ########################################
 # Global variables
 
-my %opt         = () ;      # getopts
-my $do_backups  = 0 ;       # -b
+my %opt             = () ;      # getopts
+my $do_backups      = 0 ;       # -b
+my $customs_first   = 0 ;       # -f
 
-my $above_toc   = '' ;      # HTML fragment for above the ToC
-my $below_toc   = '' ;      # HTML fragment for below the ToC
-my $below_page  = '' ;      # HTML fragment for below the main page
-my $mdbook_ver  = '' ;      # mdbook version we're running
+my $above_toc       = '' ;      # HTML fragment for above the ToC
+my $below_toc       = '' ;      # HTML fragment for below the ToC
+my $below_page      = '' ;      # HTML fragment for below the main page
+my $mdbook_ver      = '' ;      # mdbook version we're running
+my %themes          = () ;      # display names of custom themes
 
 ########################################
-# URLs to download original templates from. The version will be substituted
-# where "_TAG_" appears in the value.
+# URLs of the mdbook source code's `front-end/` directories. This program
+# will download original template and CSS files from here. The actual
+# version will be substituted where "_TAG_" appears in the value.
+#
+# Note that the keys in this hash will be evaluated as regular expressions
+# with '^' before them, so 'v0.5.' will match all v0.5.x tags.
 
 my %ver_url     = (
-    'v0.4.' => 'https://raw.githubusercontent.com/rust-lang/mdBook/refs/tags/_TAG_/src/front-end/templates/' ,
-    'v0.5.' => 'https://raw.githubusercontent.com/rust-lang/mdBook/refs/tags/_TAG_/crates/mdbook-html/front-end/templates/' ,
-
+    'v0\.4\.' => 'https://raw.githubusercontent.com/rust-lang/mdBook/refs/tags/_TAG_/src/front-end/' ,
+    'v0\.5\.' => 'https://raw.githubusercontent.com/rust-lang/mdBook/refs/tags/_TAG_/crates/mdbook-html/front-end/' ,
 ) ;
 
 ###############################################################################
@@ -93,12 +98,18 @@ $VERSION
 
 Copy or update mdbook templates files.
 
-This script must be run in a book's \"theme-template/\" directory.
+This script must be run in a book's "theme-template/" directory.
 
-This script will download the original template files it needs from the mdbook
-source code repo on Github. They will be stored in the current directory, and
+This script will download the original template and CSS files it needs from
+the mdbook source code repo on Github. They will be stored in the current
+directory, and the 'copy-css' and 'version-commit' scripts will use them to
+build the files in the "theme/" directory every time the book is rendered.
 
 -b      Create backups of each file before writing it.
+
+-f      Insert the custom theme names at the beginning of the list in the
+        drop-down menu. Without this, the custom theme names will be added
+        to the end of the list.
 
 -h      Show this help message.
 
@@ -178,10 +189,10 @@ sub command_output($)
 
 ###############################################################################
 #
-# Return the contents of a template from the mdbook source
-# - possibly download it
+# Return the contents of a template or CSS file from the mdbook source
+# - download it if it doesn't already exist
 
-sub get_original_template($$)
+sub get_original_file($$)
 {
     my $version = shift ;
     my $file    = shift ;
@@ -216,7 +227,19 @@ sub get_original_template($$)
     }
 
     $url =~ s|_TAG_|$version|g ;
-    $url =~ s|/?$|/$file| ;
+
+    if ( $file =~ m|\.hbs$| )
+    {
+        $url =~ s|/?$|/templates/$file| ;
+    }
+    elsif ( $file =~ m|\.css$| )
+    {
+        $url =~ s|/?$|/css/$file| ;
+    }
+    else
+    {
+        fail( "ERROR: don't know how to download '$file' from Github" ) ;
+    }
 
     ########################################
     # Create the version's directory if it doesn't exist
@@ -269,18 +292,122 @@ sub get_original_template($$)
 
 sub update_index_hbs()
 {
+    ########################################
+    # Initialize variables
+
+    my $mdbook_theme_list   = 0 ;
+    my $indent              = '' ;
+    my $ipre                = '' ;
+
+    if ( $mdbook_ver ge 'v0.5.' )
+    {
+        $ipre = 'mdbook-theme-' ;
+    }
+
+    ########################################
+    # Build the list of themes
+
+    my $custom_themes = '' ;
+
+    for my $dname ( sort keys %themes )
+    {
+        $custom_themes ||= "<!-- Start custom themes -->\n" ;
+
+        my $iname = $themes{$dname} ;
+
+        $custom_themes .= <<EOF ;
+$indent<li role="none"><button role="menuitem" class="theme" id="$ipre$iname">$dname</button></li>
+EOF
+    }
+
+    if ( $custom_themes ne '' )
+    {
+        $custom_themes .= "<!-- End custom themes -->\n" ;
+    }
+
+    ########################################
+    # Read (possibly download) the original 'index.hbs' file
+
     rename_file_old( 'index.hbs' ) ;
+    my $orig = get_original_file( $mdbook_ver , 'index.hbs' ) ;
 
-    my $orig = get_original_template( $mdbook_ver , 'index.hbs' ) ;
+    ############################################################
+    # Write the output file
 
-    print "writing     ./index.hbs\n" ;
+    print "writing     index.hbs\n" ;
 
-    open( my $o , '>' , "./index.hbs" )
+    open( my $o , '>' , "index.hbs" )
         or fail( "ERROR: can't write 'index.hbs': $!\n" ) ;
 
+    $mdbook_theme_list = 0 ;
     for my $line ( split( m|\n|s , $orig ) )
     {
+        ########################################
+        # If this line contains 'id="mdbook-theme-list"', set a flag to
+        # remember we're in the list. This flag is needed if we're adding
+        # the custom themes to the bottom of the list.
+
+        if ( $line =~ m|id="mdbook-theme-list"| )
+        {
+            $mdbook_theme_list = 1 ;
+        }
+
+        ########################################
+        # If we're within the theme list ...
+
+        if ( $mdbook_theme_list )
+        {
+            ########################################
+            # If this is an existing <li> within the list, remember how
+            # much whitespace is before the <li> tag so we can indent our
+            # output the same amount
+
+            if ( $line =~ m|^(\s*)<li| )
+            {
+                $indent = $1 ;
+            }
+
+            ########################################
+            # If we're adding the custom list to the top, and the current
+            # line is the <li> whose title is "Auto"
+            # - print the current line
+            # - print the custom theme list
+            # - clear the "in the list" flag
+            # - skip to the next line (i.e. don't print the current line below)
+
+            if ( $customs_first )
+            {
+                if ( $line =~ m|>Auto<| )
+                {
+                    print $o "$line\n" ;
+                    print $o $custom_themes ;
+                    $mdbook_theme_list = 0 ;
+                    next ;
+                }
+            }
+
+            ########################################
+            # If we're adding the custom list to the bottom, and the current
+            # line is the end of the list
+            # - print the custom theme list
+            # - clear the "in the list" flag
+
+            elsif ( $line =~ m|</ul>| )
+            {
+                print $o $custom_themes ;
+
+                $mdbook_theme_list = 0 ;
+            }
+        }
+
+        ########################################
+        # Print the line we received
+
         print $o "$line\n" ;
+
+        ########################################
+        # If this line contained the {{{content}}} tag,
+        # print the footer
 
         if ( $line =~ m|\{\{\{\s*content\s*\}\}\}| )
         {
@@ -301,11 +428,11 @@ sub update_toc_html_hbs()
 {
     rename_file_old( 'toc.html.hbs' ) ;
 
-    my $orig = get_original_template( $mdbook_ver , 'toc.html.hbs' ) ;
+    my $orig = get_original_file( $mdbook_ver , 'toc.html.hbs' ) ;
 
-    print "writing     ./toc.html.hbs\n" ;
+    print "writing     toc.html.hbs\n" ;
 
-    open( my $o , '>' , "./toc.html.hbs" )
+    open( my $o , '>' , "toc.html.hbs" )
         or fail( "ERROR: can't write 'toc.html.hbs': $!\n" ) ;
 
     for my $line ( split( m|\n|s , $orig ) )
@@ -333,11 +460,11 @@ sub update_toc_js_hbs()
 {
     rename_file_old( 'toc.js.hbs' ) ;
 
-    my $orig = get_original_template( $mdbook_ver , 'toc.js.hbs' ) ;
+    my $orig = get_original_file( $mdbook_ver , 'toc.js.hbs' ) ;
 
-    print "writing     ./toc.js.hbs\n" ;
+    print "writing     toc.js.hbs\n" ;
 
-    open( my $o , '>' , "./toc.js.hbs" )
+    open( my $o , '>' , "toc.js.hbs" )
         or fail( "ERROR: can't write 'toc.js.hbs': $!\n" ) ;
 
     for my $line ( split( m|\n|s , $orig ) )
@@ -368,44 +495,115 @@ sub update_toc_js_hbs()
 
 ###############################################################################
 #
-# Get the URL of a repo's "origin" remote
-# - this may not work correctly if the "origin" remote has multiple URLs
+# Update 'variables.css' - sets variable values used by CSS files
 
-sub get_repo_origin($)
+sub update_variables_css()
 {
-    my $dir = shift ;
-    my $url = '' ;
+    rename_file_old( 'variables.css' ) ;
 
-    my $repo_config = readfile_maybe( "$dir/.git/config" ) ;
+    ########################################
+    # Read the original 'variables.css' file into memory
 
-    my $in_remote_origin = 0 ;
-    my @lines = split( /\n/ , $repo_config ) ;
-    while ( my $line = shift @lines )
+    my $orig = get_original_file( $mdbook_ver , 'variables.css' ) ;
+
+    ########################################
+    # If we have any custom CSS files, read them into memory
+    # - parse themes' display names from CSS filenames
+
+    my $add_css = '' ;
+    my $count   = 0 ;
+    %themes     = () ;
+
+    for my $f ( glob( "themes/*.css" ) )
     {
-        if ( $line =~ m|^\[(.+?)\]| )
+        print "reading     $f\n" ;
+
+        $count ++ ;
+
+        ########################################
+        # Parse the theme's display name from the filename
+
+        my $dname = $f ;
+        $dname =~ s|^.*/|| ;
+        $dname =~ s|\.css||i ;
+
+        ########################################
+        # Read the file into memory
+        # - the first ".xxx {" line contains the theme's internal name
+
+        $add_css .= "/* start '$dname' from $f */\n" ;
+
+        my $iname = '' ;
+
+        open( my $fh , '<' , $f )
+            or fail( "ERROR: can't read '$f': $!" ) ;
+        while ( my $line = <$fh> )
         {
-            my $x = $1 ;
-            $in_remote_origin = ( $x eq 'remote "origin"' ) ;
-        }
-        elsif ( $in_remote_origin )
-        {
-            if ( $line =~ m|url\s*\=\s*(\S+)| )
+            $add_css .= $line ;
+
+            if ( $line =~ m|^.(\S+).*{\s*$| && ( $iname eq '' ) )
             {
-                $url = $1 ;
+                $iname = $1 ;
             }
         }
+        close $fh ;
+
+        $add_css .= "/* end '$dname' */\n" ;
+
+        ########################################
+        # Remember the "display name => internal name" association
+
+        if ( $iname eq '' )
+        {
+            fail( "ERROR: no '.xxx {' line found in '$f'" ) ;
+        }
+
+        $themes{$dname} = $iname ;
     }
 
-    return $url ;
+    ########################################
+    # If the 'css' directory doesn't exist, create it
+
+    if ( ! -d 'css' )
+    {
+        print "mkdir       ./css\n" ;
+        mkdir( 'css' , 0755 )
+            or fail( "ERROR: mkdir('css'): $!" ) ;
+    }
+
+    ############################################################
+    # Write the modified file
+
+    print "writing     css/variables.css\n" ;
+
+    open( my $o , '>' , "css/variables.css" )
+        or fail( "ERROR: can't write 'css/variables.css': $!\n" ) ;
+
+    for my $line ( split( m|\n|s , $orig ) )
+    {
+        if ( $line =~ m|^\s*\@media \(prefers\-color\-scheme: dark\)\s*\{| )
+        {
+            print $o "/* start CSS additions (custom theme values) */\n" ;
+            print $o $add_css ;
+            print $o "/* end CSS additions (custom theme values) */\n\n" ;
+        }
+
+        print $o "$line\n" ;
+    }
+
+    print $o "\n/* mdbook-fix-templates $VERSION - mdbook $mdbook_ver */\n" ;
+
+    close $o ;
 }
 
 ###############################################################################
 ###############################################################################
 ###############################################################################
 
-getopts( 'hb' , \%opt ) ;
+getopts( 'hbf' , \%opt ) ;
 $opt{'h'} && usage() ;
-$do_backups = ( $opt{'b'} ? 1 : 0 ) ;
+$do_backups     = ( $opt{'b'} ? 1 : 0 ) ;
+$customs_first  = ( $opt{'f'} ? 1 : 0 ) ;
 
 ###############################################################################
 #
@@ -440,7 +638,9 @@ $below_page = readfile_maybe( 'below-page.html' ) ;
 
 ########################################
 # Modify and write the files
+# - must process variables.css first, it builds the list of custom themes
 
+update_variables_css() ;
 update_index_hbs() ;
 update_toc_html_hbs() ;
 update_toc_js_hbs() ;

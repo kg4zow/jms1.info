@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# copy-css
+# John Simpson <jms1@jms1.net> 2026-03-12
+#
+# Copy any CSS files from theme-template/css/ to theme/css/
+
+########################################
+# Copy the files
+# - It's important that these commands not send anything to STDOUT, so
+#   just in case, we're redirecting any output to STDERR
+
+mkdir -p theme/css 1>&2
+cp theme-template/css/*.css theme/css/ 1>&2
+
+########################################
+# Give mdbook a copy of the input, without any changes
+
+jq -r -M '.[1]'

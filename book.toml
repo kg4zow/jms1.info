@@ -9,15 +9,20 @@ src                     = "src"
 title                   = "jms1.info"
 
 [output.html]
+theme                   = "./theme"
+default-theme           = "forest"
+preferred-dark-theme    = "forest"
 additional-css          = [ "section-lines.css" , "version-commit.css" ]
 git-repository-url      = "https://github.com/kg4zow/jms1.info"
 no-section-label        = true
-default-theme           = "rust"
-preferred-dark-theme    = "ayu"
 smart-punctuation       = false
 input-404               = "404.md"
 hash-files              = false
 sidebar-header-nav      = false
+
+[preprocessor.copy-css]
+renderers               = [ "html" ]
+command                 = "./copy-css"
 
 [preprocessor.version-commit]
 renderers               = [ "html" ]

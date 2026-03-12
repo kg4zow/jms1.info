@@ -1,0 +1,96 @@
+/*  Forest theme
+    John Simpson <jms1@jms1.net> 2026-02-12
+    - with assistance from Proton's "Lumo" AI assistant
+*/
+.forest {
+    /* Core Backgrounds & Text */
+    --bg                        : #1b3a1b ;     /* page background */
+    --fg                        : #c8e6c9 ;     /* page foreground */
+    --sidebar-bg                : #2e5c2e ;     /* sidebar background */
+    --sidebar-fg                : #a5d6a7 ;     /* sidebar foreground */
+    --sidebar-non-existant      : #66bb6a ;     /* sidebar non-existent item */
+    --sidebar-active            : #4caf50 ;     /* sidebar active item */
+    --sidebar-spacer            : #388e3c ;     /* sidebar spacer */
+    --inline-code-color         : var( --bg ) ; /* inline code, i.e. `xxx` */
+
+    /* Interactive Elements */
+    --scrollbar                 : #4caf50 ;
+    --icons                     : #81c784 ;
+    --icons-hover               : #a5d6a7 ;
+    --searchbar-border          : #4caf50 ;
+    --searchbar-bg              : #2e5c2e ;
+    --searchbar-fg              : #c8e6c9 ;
+    --searchbar-shadow-color    : rgba(76, 175, 80, 0.3) ;
+    --searchresults-header-fg   : #c8e6c9 ;
+    --searchresults-border      : #388e3c ;
+    --searchresults-li-bg       : #2e5c2e ;
+    --search-mark-bg            : #66bb6a ;
+    --theme-popup-bg            : var( --sidebar-bg ) ;
+    --theme-popup-border        : var( --sidebar-fg ) ;
+    --theme-hover               : var( --sidebar-active ) ;
+
+    /* Links & Accents */
+    --links                     : #81c784 ;
+    --links-hover               : #a5d6a7 ;
+    --theme-toggle-bg           : #4caf50 ;
+    --theme-toggle-fg           : #1b3a1b ;
+    --menu-bar-bg               : #2e5c2e ;
+    --menu-bar-border           : #388e3c ;
+
+    /* Code Blocks & Quotes */
+    --code-bg                   : #2e5c2e ;
+    --code-fg                   : #c8e6c9 ;
+    --quote-bg                  : #388e3c ;
+    --quote-border              : #4caf50 ;
+
+    /* Syntax Highlighting */
+    --syntax-annotation         : #ab47bc ;
+    --syntax-as                 : #81c784 ;
+    --syntax-attr-name          : #66bb6a ;
+    --syntax-attr-value         : #4caf50 ;
+    --syntax-attribute          : #66bb6a ;
+    --syntax-boolean            : #4caf50 ;
+    --syntax-builtin            : #4caf50 ;
+    --syntax-cdata              : #81c784 ;
+    --syntax-changed            : #fff9c4 ;
+    --syntax-char               : #4caf50 ;
+    --syntax-class-name         : #66bb6a ;
+    --syntax-comment            : #81c784 ;
+    --syntax-constant           : #81c784 ;
+    --syntax-default            : #c8e6c9 ;
+    --syntax-deletion           : #ffcdd2 ;
+    --syntax-directive          : #a5d6a7 ;
+    --syntax-doctype            : #a5d6a7 ;
+    --syntax-entity             : #66bb6a ;
+    --syntax-error              : #ef5350 ;
+    --syntax-export             : #a5d6a7 ;
+    --syntax-from               : #66bb6a ;
+    --syntax-function           : #66bb6a ;
+    --syntax-import             : #81c784 ;
+    --syntax-include            : #66bb6a ;
+    --syntax-info               : #42a5f5 ;
+    --syntax-insertion          : #c8e6c9 ;
+    --syntax-keyword            : #81c784 ;
+    --syntax-literal            : #4caf50 ;
+    --syntax-meta               : #78909c ;
+    --syntax-method             : #81c784 ;
+    --syntax-module             : #66bb6a ;
+    --syntax-namespace          : #66bb6a ;
+    --syntax-null               : #ffca28 ;
+    --syntax-number             : #a5d6a7 ;
+    --syntax-operator           : #81c784 ;
+    --syntax-package            : #81c784 ;
+    --syntax-preprocessor       : #81c784 ;
+    --syntax-property           : #a5d6a7 ;
+    --syntax-punctuation        : #c8e6c9 ;
+    --syntax-regex              : #26a69a ;
+    --syntax-require            : #a5d6a7 ;
+    --syntax-special            : #81c784 ;
+    --syntax-string             : #4caf50 ;
+    --syntax-symbol             : #a5d6a7 ;
+    --syntax-tag                : #81c784 ;
+    --syntax-type               : #66bb6a ;
+    --syntax-undefined          : #ef5350 ;
+    --syntax-variable           : #c8e6c9 ;
+    --syntax-warning            : #ffca28 ;
+}
