@@ -106,7 +106,7 @@ while ( $x <= 5 )
 
 ## Embedded in this page
 
-If you look at this page's Markdown source, you'll see that it contains some HTML fragments. I don't normally include HTML when writing Markdown, however I wanted this page to show not only the *effects* of the different colour values I'm trying, but the actual *values* as well.
+If you look at [this page's Markdown source](https://raw.githubusercontent.com/kg4zow/jms1.info/refs/heads/main/src/mdbook/test-css.md), you'll see that it contains some HTML fragments. I don't normally include HTML when writing Markdown, however I wanted this page to show not only the *effects* of the different colour values I'm trying, but the actual *values* as well.
 
 You will also notice (in the Markdown source) that the values in the tables are enclosed with `<tt>...</tt>` rather than with backticks. This is because part of how mdbook handles backticks involves converting any `<` and `>` characters in the monospaced text to `&lt;` and `&gt;`, which makes the browser show the `<span>` *tags* instead of the values.
 
