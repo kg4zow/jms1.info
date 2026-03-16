@@ -52,10 +52,6 @@ The best way to reach me is to email `jms1@jms1.net`. If your message bounces (m
 
 If you need an *immediate* response for some reason, or if you've found a problem with the information on this site, you can use [Keybase](https://keybase.io/) chat. My username there is `jms1`.
 
-> &#x26A0;&#xFE0F; **This is not an offer to provide free consulting or support services.**
->
-> My idea of what constitutes an emergency is probably not the same as yours. For example, if *your* mail server is down, that almost certainly doesn't affect *me* at all, unless you're offering to pay me for my time.
-
 ## About this site
 
 I'm writing this site as a collection of [Markdown](https://daringfireball.net/projects/markdown/) files, converting them to static HTML files using [mdbook](https://rust-lang.github.io/mdBook/) with some [customizations](https://github.com/kg4zow/mdbook-template), tracking the changes using [git](https://git-scm.com/), and hosting the finished site using [Keybase Sites](https://book.keybase.io/sites).
