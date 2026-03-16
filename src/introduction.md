@@ -37,7 +37,7 @@ These are *some* other public web sites that I've written over the years.
 
 * [`qmail.jms1.net`](https://qmail.jms1.net/) is my web site about [Qmail](https://cr.yp.to/qmail.html). When I started using qmail I took several other patches and combined them into a single patch, and I put the patch on the `jms1.net` site. People started using my combined patch and asking questions about it, so I moved all of the qmail-related content to its own web site.
 
-    I was making my living as an independent contractor at the time, and unfortunatlely, since returning to the world of full-time employment, I haven't had time to maintain the site (or the combined patch). If you're building a mail server I still recommend qmail, but I don't really recommend my own combined patch anymore, because it *is* so far out of date.
+    I was making my living as an independent contractor at the time, and unfortunately, since returning to the world of full-time employment, I haven't had time to maintain the site (or the combined patch). If you're building a mail server I still recommend qmail, but I don't really recommend my own combined patch anymore, because it *is* so far out of date.
 
 * [`kg4zow.us`](https://kg4zow.us/) is my site about Amateur Radio (aka "ham radio"). I'm not as active on the air as I used to be, partly because I moved to a smaller city which doesn't have as many ham radio operators around, and partly because I don't have the time.
 
