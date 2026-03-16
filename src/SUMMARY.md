@@ -37,6 +37,7 @@
 - [mdbook](mdbook/index.md)
     - [Creating a book](mdbook/create.md)
     - [Adding commit/date info](mdbook/commit-info.md)
+    - [Testing CSS Attributes](mdbook/test-css.md)
 
 - [Obsidian](obsidian/index.md)
     - [obsidian-git](obsidian/git/index.md)
