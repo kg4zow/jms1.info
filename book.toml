@@ -10,8 +10,8 @@ title                   = "jms1.info"
 
 [output.html]
 theme                   = "./theme"
-default-theme           = "forest"
-preferred-dark-theme    = "forest"
+default-theme           = "simpleblue"
+preferred-dark-theme    = "simpleblue"
 additional-css          = [ "section-lines.css" , "version-commit.css" ]
 git-repository-url      = "https://github.com/kg4zow/jms1.info"
 no-section-label        = true
@@ -20,13 +20,22 @@ input-404               = "404.md"
 hash-files              = false
 sidebar-header-nav      = false
 
-[preprocessor.copy-css]
+########################################
+# Rebuild the theme files and copy the new `variables.css` into place
+
+[preprocessor.theme-rebuild]
 renderers               = [ "html" ]
-command                 = "./copy-css"
+command                 = "./theme-rebuild"
+
+########################################
+# Add the git commit information to the rendered pages.
 
 [preprocessor.version-commit]
 renderers               = [ "html" ]
 command                 = "./version-commit"
+
+########################################
+# Folding the ToC make it easier to deal with, when there are a lot of pages.
 
 [output.html.fold]
 enable                  = true

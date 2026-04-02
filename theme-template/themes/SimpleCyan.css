@@ -1,0 +1,51 @@
+/*  Simple Cyan theme
+    John Simpson <jms1@jms1.net> 2026-04-02
+*/
+.simplecyan {
+    /* Base hue value used by other elements below */
+    --theme-hue                    : 180 ;
+
+    /* Core Backgrounds & Text */
+    --color-scheme                  : dark ;
+    --bg                            : hsl( var(--theme-hue) , 36.3% , 16.6% ) ;
+    --fg                            : hsl( var(--theme-hue) , 37.6% , 84.3% ) ;
+    --inline-code-color             : var(--bg) ;
+    --links                         : hsl( var(--theme-hue) , 38.2% , 64.3% ) ;
+
+    /* Sidebar */
+    --sidebar-bg                    : hsl( var(--theme-hue) , 50.0% , 20.0% ) ;
+    --sidebar-fg                    : hsl( var(--theme-hue) , 37.4% , 74.3% ) ;
+    --sidebar-non-existant          : hsl( var(--theme-hue) , 38.4% , 56.7% ) ;
+    --sidebar-active                : hsl( var(--theme-hue) , 39.4% , 49.2% ) ;
+    --sidebar-spacer                : hsl( var(--theme-hue) , 43.6% , 38.8% ) ;
+    --sidebar-header-border-color   : hsl( var(--theme-hue) , 57.8% , 43.0% ) ;
+
+    /* Blockquotes */
+    --quote-bg                      : hsl( var(--theme-hue) , 43.6% , 38.8% ) ;
+    --quote-border                  : hsl( var(--theme-hue) , 39.4% , 49.2% ) ;
+
+    /* Tables */
+    --table-header-bg               : hsl( var(--theme-hue) , 33.3% , 27.1% ) ;
+    --table-border-color            : hsl( var(--theme-hue) , 36.5% , 25.0% ) ;
+    --table-alternate-bg            : hsl( var(--theme-hue) , 36.5% , 20.0% ) ;
+
+    /* Code Highlighting */
+    --code-bg                       : hsl( var(--theme-hue) , 50.0% , 20.0% ) ;
+    --code-fg                       : hsl( var(--theme-hue) , 37.6% , 84.3% ) ;
+
+    /* Interactive Elements */
+    --scrollbar                     : hsl( var(--theme-hue) , 39.4% , 49.2% ) ;
+    --icons                         : hsl( var(--theme-hue) , 38.2% , 64.3% ) ;
+    --icons-hover                   : hsl( var(--theme-hue) , 37.4% , 74.3% ) ;
+    --searchbar-border-color        : hsl( var(--theme-hue) , 39.4% , 49.2% ) ;
+    --searchbar-bg                  : hsl( var(--theme-hue) , 50.0% , 20.0% ) ;
+    --searchbar-fg                  : hsl( var(--theme-hue) , 37.6% , 84.3% ) ;
+    --searchbar-shadow-color        : hsla( var(--theme-hue) , 39.4% , 49.2% , 0.3 ) ;
+    --searchresults-header-fg       : hsl( var(--theme-hue) , 37.6% , 84.3% ) ;
+    --searchresults-border-color    : hsl( var(--theme-hue) , 43.6% , 38.8% ) ;
+    --searchresults-li-bg           : hsl( var(--theme-hue) , 50.0% , 20.0% ) ;
+    --search-mark-bg                : hsl( var(--theme-hue) , 38.4% , 56.7% ) ;
+    --theme-popup-bg                : var(--sidebar-bg) ;
+    --theme-popup-border            : var(--sidebar-fg) ;
+    --theme-hover                   : var(--sidebar-active) ;
+}

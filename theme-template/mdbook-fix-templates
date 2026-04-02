@@ -2,7 +2,7 @@
 #
 # mdbook-fix-templates
 # jms1 2022-04-05
-my $VERSION = 'v0.5.0 2026-03-12' ;
+my $VERSION = 'v0.5.1 2026-04-02' ;
 #
 # Copy or update mdbook template files for "books".
 #
@@ -51,6 +51,7 @@ use LWP::UserAgent ;
 my %opt             = () ;      # getopts
 my $do_backups      = 0 ;       # -b
 my $customs_first   = 0 ;       # -f
+my $quiet           = 0 ;       # -q
 
 my $above_toc       = '' ;      # HTML fragment for above the ToC
 my $below_toc       = '' ;      # HTML fragment for below the ToC
@@ -111,6 +112,10 @@ build the files in the "theme/" directory every time the book is rendered.
         drop-down menu. Without this, the custom theme names will be added
         to the end of the list.
 
+-q      Quiet. Don't print any output other than error messages. This is
+        meant to be used from within the mdbook pipeline, if rebuilding
+        the themes every time the book is rendered.
+
 -h      Show this help message.
 
 EOF
@@ -125,6 +130,15 @@ EOF
 
 ###############################################################################
 #
+# Print, but only if $quiet is not set
+
+sub qprint(@)
+{
+    $quiet || print @_ ;
+}
+
+###############################################################################
+#
 # If a file exists, rename it to the same name with ".old" at the end
 
 sub rename_file_old($)
@@ -135,7 +149,7 @@ sub rename_file_old($)
     {
         if ( -f $file )
         {
-            print "renaming    $file to $file.old\n" ;
+            qprint "renaming    $file to $file.old\n" ;
 
             rename( $file , "$file.old" )
                 or fail( "ERROR: can't rename \"$file\" to \"$file.old\": $!\n" ) ;
@@ -153,7 +167,7 @@ sub readfile_maybe($)
     my $file = shift ;
     my $rv   = '' ;
 
-    print "reading     $file\n" ;
+    qprint "reading     $file\n" ;
 
     if ( -f $file )
     {
@@ -246,7 +260,7 @@ sub get_original_file($$)
 
     if ( ! -d $version )
     {
-        print "mkdir       $version\n" ;
+        qprint "mkdir       $version\n" ;
 
         mkdir( $version , 0755 )
             or die "ERROR: mkdir('$version'): $!\n" ;
@@ -256,7 +270,7 @@ sub get_original_file($$)
     # Download the file
     # TODO: handle redirects
 
-    print "downloading $url\n" ;
+    qprint "downloading $url\n" ;
 
     my $ua = new LWP::UserAgent( "mdbook-fix-templates/$VERSION" ) ;
     my $res = $ua->get( $url ) ;
@@ -273,7 +287,7 @@ sub get_original_file($$)
     ########################################
     # Save the file
 
-    print "writing     $version/$file\n" ;
+    qprint "writing     $version/$file\n" ;
 
     open( my $fh , '>' , "$version/$file" )
         or die "ERROR: can't write '$version/$file': $!\n" ;
@@ -334,7 +348,7 @@ EOF
     ############################################################
     # Write the output file
 
-    print "writing     index.hbs\n" ;
+    qprint "writing     index.hbs\n" ;
 
     open( my $o , '>' , "index.hbs" )
         or fail( "ERROR: can't write 'index.hbs': $!\n" ) ;
@@ -430,7 +444,7 @@ sub update_toc_html_hbs()
 
     my $orig = get_original_file( $mdbook_ver , 'toc.html.hbs' ) ;
 
-    print "writing     toc.html.hbs\n" ;
+    qprint "writing     toc.html.hbs\n" ;
 
     open( my $o , '>' , "toc.html.hbs" )
         or fail( "ERROR: can't write 'toc.html.hbs': $!\n" ) ;
@@ -462,7 +476,7 @@ sub update_toc_js_hbs()
 
     my $orig = get_original_file( $mdbook_ver , 'toc.js.hbs' ) ;
 
-    print "writing     toc.js.hbs\n" ;
+    qprint "writing     toc.js.hbs\n" ;
 
     open( my $o , '>' , "toc.js.hbs" )
         or fail( "ERROR: can't write 'toc.js.hbs': $!\n" ) ;
@@ -516,7 +530,7 @@ sub update_variables_css()
 
     for my $f ( glob( "themes/*.css" ) )
     {
-        print "reading     $f\n" ;
+        qprint "reading     $f\n" ;
 
         $count ++ ;
 
@@ -566,7 +580,7 @@ sub update_variables_css()
 
     if ( ! -d 'css' )
     {
-        print "mkdir       ./css\n" ;
+        qprint "mkdir       ./css\n" ;
         mkdir( 'css' , 0755 )
             or fail( "ERROR: mkdir('css'): $!" ) ;
     }
@@ -574,7 +588,7 @@ sub update_variables_css()
     ############################################################
     # Write the modified file
 
-    print "writing     css/variables.css\n" ;
+    qprint "writing     css/variables.css\n" ;
 
     open( my $o , '>' , "css/variables.css" )
         or fail( "ERROR: can't write 'css/variables.css': $!\n" ) ;
@@ -600,10 +614,11 @@ sub update_variables_css()
 ###############################################################################
 ###############################################################################
 
-getopts( 'hbf' , \%opt ) ;
+getopts( 'hbfq' , \%opt ) ;
 $opt{'h'} && usage() ;
 $do_backups     = ( $opt{'b'} ? 1 : 0 ) ;
 $customs_first  = ( $opt{'f'} ? 1 : 0 ) ;
+$quiet          = ( $opt{'q'} ? 1 : 0 ) ;
 
 ###############################################################################
 #
@@ -626,7 +641,7 @@ if ( $mdbook_ver eq '' )
     fail "ERROR: 'mdbook --version' failed: $!" ;
 }
 
-print "mdbook      $mdbook_ver\n" ;
+qprint "mdbook      $mdbook_ver\n" ;
 
 ########################################
 # Read the HTML fragment files into memory

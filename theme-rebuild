@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# theme-rebuild
+# John Simpson <jms1@jms1.net> 2026-03-12
+LAST_UPDATED='2026-04-02'
+#
+# Rebuild the theme files in the theme-template/ directory.
+# - Run 'mdbook-fix-templates', which builds new *.hbs and
+#   css/variables.css files
+# - Copy all css/*.css files to theme/css/
+#
+# NOTE: it's important that nothing in this script sends anything to STDOUT,
+# other than the `jq` command at the end. This is why every other command in
+# the script has `1>&2`, to send any possible output to STDERR.
+
+########################################
+# Maybe rebuild the `*.hbs` and `css/variables.css` files
+# in the theme-template/ directory.
+
+( cd theme-template ; ./mdbook-fix-templates -q ) 1>&2
+
+########################################
+# Copy the CSS files
+
+mkdir -p theme/css 1>&2
+cp theme-template/css/*.css theme/css/ 1>&2
+
+########################################
+# Give mdbook a copy of the input, without any changes
+
+jq -r -M '.[1]'
