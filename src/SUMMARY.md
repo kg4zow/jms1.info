@@ -32,6 +32,7 @@
     - [x86_64 Microarchitecture Levels](linux/x86-64-v.md)
 
 - [macOS](macos/index.md)
+    - [Backing up a Time Machine Image](macos/tmbackup.md)
     - [SSH Post-Quantum Encryption](macos/pq.md)
 
 - [mdbook](mdbook/index.md)
