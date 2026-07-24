@@ -1,0 +1,723 @@
+#!/usr/bin/env perl
+#
+# git-fix-remote-order
+# John Simpson <jms1@jms1.net> 2026-03-06 Fri
+my $LAST_UPDATED = '2026-07-24 Fri' ;
+#
+# Fix the list of remotes on a repo having multiple URLs for the `origin`
+# remote. This uses a config file containing the URLs of each repo, in the
+# desired order (i.e. the first URL is the "fetch" URL *and* a "push" URL,
+# and other URLs are "push" URLs only.)
+#
+# Config file example
+#
+#   =jms1.info
+#   foks        foks://(redacted)/jms1.info
+#   internal    git@git.internal/jms1.info
+#   github      git@github.com:kg4zow/jms1.info
+#
+# Also provides an option to "split" the URLs into separate remotes, which
+# is helpful when cleaning things up in case the remotes get out of sync.
+
+require 5.005 ;
+use strict ;
+use warnings ;
+
+use Getopt::Std ;
+
+$| = 1 ;
+
+########################################
+# Build location of config file
+
+my $config_home     = ( $ENV{'XDG_CONFIG_HOME'} || ( $ENV{'HOME'} . "/.config" ) ) ;
+my $config_dir      = "$config_home/git-fix-remote-order" ;
+my $config_file     = "$config_dir/repos.txt" ;
+
+########################################
+# Global variables
+
+my %repo            = () ;      # (hash of hashes)
+                                # repo name =>
+                                #   ''               => count of remotes/URLs
+                                #   ' 1', ' 2', etc. => rname
+                                #   'rname'          => URL
+
+my %url             = () ;      # URL => repo name
+my $w_remote        = 0 ;       # length of longest remote name
+my $w_url           = 0 ;       # length of longest URL
+
+my %opt             = () ;      # getopts()
+my $doit            = 0 ;       # -g
+my $do_split        = 0 ;       # -s
+my $do_debug        = 0 ;       # -D
+
+###############################################################################
+#
+# Coloured line functions
+#
+# Note: to include extra "blank" coloured lines
+# - above: start the string with "\n"
+# - below: end the string with "\n " (last character is a space)
+
+sub coloured_line($@)
+{
+    my $col = shift ;
+    my $msg = join( '' , @_ ) ;
+    my $out = '' ;
+
+    for my $line ( split( m|\r?\n| , $msg ) )
+    {
+        $out .= sprintf( "\e[0;%sm%s\e[K\e[0m\n" , $col , $line ) ;
+    }
+
+    return $out ;
+}
+
+sub redline(@)
+{
+    print coloured_line( '0;1;37;41' , @_ ) ;
+}
+
+sub yellowline(@)
+{
+    print coloured_line( '0;30;43' , @_ ) ;
+}
+
+sub blueline(@)
+{
+    print coloured_line( '0;1;37;44' , @_ ) ;
+}
+
+sub greenline(@)
+{
+    print coloured_line( '0;1;37;42' , @_ ) ;
+}
+
+sub cyanline(@)
+{
+    print coloured_line( '0;1;37;46' , @_ ) ;
+}
+
+sub purpleline(@)
+{
+    print coloured_line( '0;1;37;45' , @_ ) ;
+}
+
+sub whiteline(@)
+{
+    print coloured_line( '0;1;37;47' , @_ ) ;
+}
+
+###############################################################################
+#
+# Fail function.
+# - First arg is printed to STDERR in redline() style.
+# - Successive args (if any) are printed normally.
+# - Runs 'exit 1' to exit the entire program.
+
+sub fail(@)
+{
+    my $line = ( shift || 'fail(): no fail message specified' ) ;
+    print STDERR coloured_line( '0;1;37;41' , $line ) ;
+
+    while ( $line = shift )
+    {
+        print STDERR $line ;
+    }
+
+    exit 1 ;
+}
+
+###############################################################################
+#
+# Debugging message. Print a message in yellow, but only if debugging is
+# enabled.
+#
+# - Combine the arguments (each containing one or more lines of text) into
+#   a single string.
+# - Split the combined message into lines, adds a prefix to each line, and
+#   print each line of the result using `yellowline()`.
+# - The prefix is set using the global variable `$debug_prefix`.
+#   - If changing the prefix, be sure to include a space at the end, unless
+#     you want the messages "touching" the prefix.
+# - The default prefix is "\f", which makes the function use the caller's
+#   "filename:line" as the prefix. I chose this value because ...
+#   - I wanted to be able to use the empty string for "no prefix"
+#   - I didn't want to use a non-ASCII character
+#   - It's not something I can see people wanting to use "for real"
+
+my $debug_prefix = "\f" ;
+
+sub debug(@)
+{
+    if ( $do_debug )
+    {
+        my $msg = join( "\n" , @_ ) ;
+
+        ########################################
+        # Figure out what the prefix will be
+
+        my $pre = $debug_prefix ;
+        if ( $pre eq "\f" )
+        {
+            my @c = caller( 0 ) ;
+            $pre = sprintf( "%s:%d: " , $c[1] , $c[2] ) ;
+        }
+
+        ########################################
+        # Print the debug lines
+
+        for my $line ( split( m|\r?\n| , $msg ) )
+        {
+            print STDERR coloured_line( '0;30;43' , "$pre$line" ) ;
+        }
+    }
+}
+
+###############################################################################
+#
+# Usage
+
+sub usage(;$)
+{
+    my $msg = ( shift || '' ) ;
+
+    print <<EOF ;
+$0 [options] [DIR [...]]
+
+Fix the list of URLs for the 'origin' remote on one or more repo directories.
+The list of repos and URLs is stored in a config file, which is stored in:
+
+$config_file
+
+-g      Run the commands. Without this option, the commands will be shown
+        but not executed.
+
+-s      Split the URLs into separate remotes, using the remote names from
+        the config file. Without this, all URLs will be joined into a single
+        remote called 'origin', and the '-x' option will be enabled.
+
+-x      Show the commands being executed.
+
+-D      Show debugging messages. Also enables '-x'.
+
+-h      Show this help message.
+
+Last updated $LAST_UPDATED
+
+EOF
+
+    if ( $msg ne '' )
+    {
+        fail $msg ;
+    }
+
+    exit 0 ;
+}
+
+###############################################################################
+#
+# Read the config file into memory
+#
+# Config file format: lines
+#   - empty lines, and comments delimited by "#", are ignored
+#   - "=xxx" starts a new repo definition called "xxx"
+#   - other lines contain aliases and URLs and for the current repo
+#     - each line contains an alias and a URL, separated by whitespace
+#     - when joining URLs into a single remote
+#       - first URL will be used for fetch/push
+#       - other URLs will be used for push only
+#     - when splitting URLs into separate remotes
+#       - the alias will be used as the remote name
+#
+# Internally, each URL will have two aliases:
+# - one from the file
+# - one ' 0', ' 1', etc.
+
+sub read_config()
+{
+    ########################################
+    # Clear global data (just to be sure)
+
+    %repo           = () ;      # global hash: repo name => alias => URL
+    %url            = () ;      # global hash: URL => "repo name:alias"
+
+    ########################################
+    # If the config file doesn't exist, we have nothing to do
+
+    unless ( -f $config_file )
+    {
+        fail "ERROR: config file '$config_file' does not exist\n" ;
+    }
+
+    ############################################################
+    # Process the file
+
+    ########################################
+    # Start with clean local state
+
+    my $the_repo    = '' ;      # local state: current repo name
+    my %the_alias   = () ;      # local state: alias => URL
+    my $the_count   = 0 ;       # local state: alias count
+
+    ########################################
+    # Start processing lines from the file
+
+    open( CFG , '<' , $config_file )
+        or fail "ERROR: open('$config_file'): $!\n" ;
+
+    while ( my $line = <CFG> )
+    {
+        $line =~ s|\s+$|| ;
+        debug "LINE '$line'" ;
+
+        ########################################
+        # Ignore comments and empty lines
+
+        $line =~ s|^\s*#.*$|| ;
+        next unless ( $line ) ;
+
+        ########################################
+        # If the line starts with '=', start a new repo
+        # - remember whatever we may currently have
+        # - initialize with new repo name
+
+        if ( $line =~ m|^=(.+)$| )
+        {
+            my $newrepo = $1 ;
+            debug "REPO '$newrepo'\n" ;
+
+            ########################################
+            # Make sure the new repo name isn't a duplicate
+
+            if ( exists( $repo{$newrepo} ) )
+            {
+                fail "ERROR: duplicate '=$newrepo' in config file\n" ;
+            }
+
+            ########################################
+            # Initialize local state
+
+            $the_repo               = $newrepo ;
+            %the_alias              = () ;
+            $the_count              = 0 ;
+
+            ########################################
+            # Remember the repo name with zero count
+
+            $repo{$the_repo}->{''}  = $the_count ;
+
+            ########################################
+            # Finished with this line
+
+            next ;
+        }
+
+        ########################################
+        # If we're not reading a repo yet, throw an error
+
+        if ( $the_repo eq '' )
+        {
+            fail "ERROR: URL '$line' before '=repo' line\n" ;
+        }
+
+        ########################################
+        # The line should contain a remote name followed by a URL
+        # - remote name cannot be 'origin'
+        # - remember the URL's two aliases (remote name and numeric)
+        # - keep track of the longest remote name and longest URL
+
+        my ( $r , $u ) = split( m|\s+| , $line , 2 ) ;
+
+        if ( $r eq 'origin' )
+        {
+            fail "ERROR: repo '$the_repo' - do not use 'origin' as remote name" ;
+        }
+
+        $the_count ++ ;
+        $repo{$the_repo}->{''}              = $the_count ;
+        $repo{$the_repo}->{" $the_count"}   = $r ;
+        $repo{$the_repo}->{$r}              = $u ;
+        $url{$u}                            = $the_repo ;
+
+        my $l = length( $r ) ;
+        if ( $l > $w_remote )
+        {
+            $w_remote = $l ;
+        }
+
+        $l = length( $u ) ;
+        if ( $l > $w_url )
+        {
+            $w_url = $l ;
+        }
+
+        debug "ALIAS $the_count '$r' '$u'\n" ;
+    }
+
+    close CFG ;
+}
+
+###############################################################################
+#
+# Dump config
+
+sub dump_config()
+{
+    my $rv = '' ;
+
+    for my $reponame ( sort keys %repo )
+    {
+        if ( $rv ne '' )
+        {
+            $rv .= "\n" ;
+        }
+
+        $rv .= "=$reponame\n" ;
+
+        for my $k ( sort keys %{$repo{$reponame}} )
+        {
+            if ( $k =~ m|^ \d| )
+            {
+                my $remote = $repo{$reponame}->{$k} ;
+                $rv .= sprintf( "%-*s %s\n" , $w_remote , $remote ,
+                    $repo{$reponame}->{$remote} ) ;
+            }
+        }
+    }
+
+    return $rv ;
+}
+
+sub dump_urls()
+{
+    my $rv = '' ;
+
+    for my $k ( sort keys %url )
+    {
+        $rv .= sprintf( "%-*s %s\n" , $w_url , $k , $url{$k} ) ;
+    }
+
+    return $rv ;
+}
+
+###############################################################################
+#
+# Print or run a command, in a directory. Return its output
+
+sub run_in($$$)
+{
+    my $dir = shift ;
+    my $go  = shift ;
+    my $cmd = shift ;
+    my $rv  = '' ;
+
+    ########################################
+    # If we need to 'cd $dir' first, add that to the command.
+
+    if ( $dir ne '.' )
+    {
+        $cmd = "( cd '$dir' && $cmd )" ;
+    }
+
+    ########################################
+    # If we're not actually running the command, print it and return.
+
+    unless ( $go )
+    {
+        cyanline "- $cmd" ;
+        return ;
+    }
+
+    ########################################
+    # Show the command.
+
+    cyanline "+ $cmd" ;
+
+    ########################################
+    # Run the command and gather its output.
+
+    open( R , "$cmd |" )
+        or fail "ERROR: '$cmd': $!\n" ;
+    while ( my $line = <R> )
+    {
+        $rv .= $line ;
+    }
+    close R ;
+
+    return $rv ;
+}
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+#
+# Process command line
+
+getopts( 'hgsD' , \%opt ) ;
+$opt{'h'} && usage() ;
+$doit       = ( $opt{'g'} ? 1 : 0 ) ;
+$do_split   = ( $opt{'s'} ? 1 : 0 ) ;
+$do_debug   = ( $opt{'D'} ? 1 : 0 ) ;
+
+########################################
+# Build the list of directory names we'll be processing
+
+my @dirs = () ;
+while ( my $d = shift @ARGV )
+{
+    push( @dirs , $d ) ;
+}
+
+if ( @dirs < 1 )
+{
+    push( @dirs , '.' ) ;
+}
+
+########################################
+# Read config file
+
+read_config() ;
+
+debug   "/===== repo => url\n" ,
+        dump_config() ,
+        "|===== url => repo\n" ,
+        dump_urls() ,
+        "\\=====\n" ;
+
+###############################################################################
+#
+# Process directories
+
+for my $dir ( @dirs )
+{
+    purpleline "\nProcessing directory '$dir'\n " ;
+
+    ############################################################
+    # Run 'git remote -v'
+    # - read the remotes' URLs to identify which repo this is
+    # - remember all remote names
+
+    blueline 'Checking existing remotes' ;
+
+    my $rtext   = run_in( $dir , 1 , 'git remote -v' ) ;
+
+    my %remote      = () ;
+    my $rname       = '' ;
+    my $rfurl       = '' ;
+    my @rpurl       = () ;
+    my $non_origin  = 0 ;
+
+    for my $line ( split( m|\r?\n| , $rtext ) )
+    {
+        print "$line\n" ;
+
+        next unless ( $line =~ m|^(\S+)\s+(.+) \((.+)\)| ) ;
+        my ( $r , $u , $t ) = ( $1 , $2 , $3 ) ;
+
+        debug "r='$r' u='$u' t='$t'" ;
+
+        ########################################
+        # Remember the remote name
+
+        $remote{$r} = 1 ;
+
+        if ( $r ne 'origin' )
+        {
+            $non_origin = 1 ;
+        }
+
+        ########################################
+        # If the URL is attached to a repo from the config file,
+        # remember that repo name.
+
+        if ( exists $url{$u} )
+        {
+            if ( ( $rname ne '' ) && ( $rname ne $url{$u} ) )
+            {
+                fail "ERROR: URL '$u' is attached to multiple remotes ('$rname', '$url{$u}')\n" ;
+            }
+
+            $rname = $url{$u} ;
+            debug "recognized repo '$rname'\n" ;
+        }
+        else
+        {
+            debug "\$url{'$u'} not found" ;
+        }
+    }
+
+    ########################################
+    # Make sure we identified a repo
+
+    if ( $rname eq '' )
+    {
+        fail "ERROR: no recognized remote URLs in '$dir'\n" ;
+    }
+
+    greenline "recognized repo '$rname'" ;
+
+    ############################################################
+    # Remember any linked branches
+    # - git branch -vv --color=never
+    # - note: stored 'remote' values will be of the form "origin/xxx"
+
+    blueline "Checking for linked branches" ;
+
+    my $ltext           = run_in( $dir , 1 , 'git branch -vv --color=never' ) ;
+    my %linked_branches = () ;
+    my $nlinked         = 0 ;
+    my $w_lbr           = 5 ;
+
+    for my $line ( split( m|\r?\n| , $ltext ) )
+    {
+        print "$line\n" ;
+
+        next unless ( $line =~ m|^[\*\s]*(\S+).+\[(\S+)\]| ) ;
+        my ( $loc , $rem ) = ( $1 , $2 ) ;
+        $linked_branches{$1} = $2 ;
+        $nlinked ++ ;
+
+        my $l = length( $loc ) ;
+        if ( $l > $w_lbr )
+        {
+            $w_lbr = $l ;
+        }
+    }
+
+    if ( $nlinked > 0 )
+    {
+        printf "%-*s  %s\n" , $w_lbr , 'Local' , 'Remote' ;
+        print '-' x $w_lbr , "  ------\n" ;
+        for my $loc ( sort keys %linked_branches )
+        {
+            printf "%-*s  %s\n" , $w_lbr , $loc , $linked_branches{$loc} ;
+        }
+    }
+
+    ############################################################
+    # Remove all remotes
+    # - git remote remove RRR
+
+    blueline "Removing all remotes" ;
+
+    for my $r ( sort keys %remote )
+    {
+        print run_in( $dir , $doit , "git remote remove '$r'" ) ;
+    }
+
+    ############################################################
+    # If we're splitting, create individual remotes
+    # - git remote add RRR URL
+    # - splitting doesn't support multiple URLs for remotes
+
+    my $rk      = $repo{$rname} ;
+    my $rcount  = $rk->{''} ;
+
+    if ( $do_split )
+    {
+        for my $r ( sort keys %$rk )
+        {
+            if ( $r =~ m|^\S| )
+            {
+                my $u = $rk->{$r} ;
+
+                blueline "Adding remote '$r' -> '$u'" ;
+
+                print run_in( $dir , $doit , "git remote add '$r' '$u'" ) ;
+                print run_in( $dir , $doit , "git fetch -t '$r'" ) ;
+            }
+        }
+    }
+
+    ############################################################
+    # Create a single 'origin' remote with all URLs
+    # - git remote add origin URL[0]
+    # - git fetch -t origin
+    # - if 'origin' was the only remote to start with, re-link branches
+    #   - for each URL
+    #     - git remote set-url --add --push origin URL[n]
+
+    else
+    {
+        ########################################
+        # Create the 'origin' remote and add the push URLs, in order from the
+        # config file.
+
+        my $created = 0 ;
+
+        for my $k ( sort keys %$rk )
+        {
+            if ( $k =~ m|^ \d| )
+            {
+                my $alias = $rk->{$k} ;
+                my $url   = $rk->{$alias} ;
+
+                ########################################
+                # If the remote hasn't been created yet, do that
+
+                unless ( $created )
+                {
+                    blueline "Adding remote 'origin' -> '$url'" ;
+
+                    print run_in( $dir , $doit , "git remote add origin '$url'" ) ;
+                    print run_in( $dir , $doit , 'git fetch -t origin' ) ;
+                    $created = 1 ;
+                }
+
+                ########################################
+                # If more than one URL is being added to the remote, they ALL
+                # need to be added as "push" URLs, including the first one.
+
+                if ( $rcount > 1 )
+                {
+                    blueline "Adding push URL '$url' to remote 'origin'" ;
+                    print run_in( $dir , $doit , "git remote set-url --add --push origin '$url'" ) ;
+                }
+            }
+        }
+
+        ########################################
+        # Re-link branches, but only if the original remote name is one that
+        # existed before we did anything.
+        # - git branch -u origin/RBR LBR
+
+        if ( $non_origin )
+        {
+            yellowline "\nNOTE: cannot re-link branches\n " ;
+        }
+        else
+        {
+            for my $link_loc ( keys %linked_branches )
+            {
+                my $link_rem = $linked_branches{$link_loc} ;
+
+                if ( $link_rem =~ m|^origin/| )
+                {
+                    print run_in( $dir , $doit , "git branch -u '$link_rem' '$link_loc'" ) ;
+                }
+            }
+        }
+    }
+
+    blueline "Reporting final status" ;
+    print run_in( $dir , 1 , 'git remote -v' ) ;
+}
+
+###############################################################################
+#
+# If we didn't do anything, remind the user about the '-g' option
+
+unless ( $doit )
+{
+    print "\n" ;
+    yellowline "\nReminder\n " ;
+    print <<EOF ;
+
+This script didn't make any changes. If the commands above look correct,
+run the same command again but add the '-g' option.
+
+EOF
+}
