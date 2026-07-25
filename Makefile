@@ -19,3 +19,4 @@ serve-all:
 
 push: build
 	rsync -avz --delete book/ /keybase/team/jms1team.sites/jms1.info/
+	rsync -avz --delete book/ vps2.jms1.net:/var/www/jms1.info/
