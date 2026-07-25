@@ -263,7 +263,7 @@ Splitting the repo's URLs into separate remotes can be useful when troubleshooti
 
 * Once everything is back to its expected state (i.e. all remotes' copies of the branches are pointing to the same commits), run `git-fix-remote-order -g` to rejoin the remotes.
 
-    If you see a yellow warning saying `NOTE: cannot re-link branches`, this means that whatever branches *were* originally linked to upstream branches, are no longer linked. (This kind of link is what makes `git push` work correctly without any branch or repo names.)
+    If you see a yellow warning saying `WARNING: cannot re-link branches`, this means that whatever branches *were* originally linked to upstream branches, are no longer linked. (This kind of link is what makes `git push` work correctly without any branch or repo names.)
 
     You can re-create the link using the `git branch -u` command. For example, to link the local `main` branch to the `origin/main` upstream branch ...
 

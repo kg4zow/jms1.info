@@ -2,7 +2,7 @@
 #
 # git-fix-remote-order
 # John Simpson <jms1@jms1.net> 2026-03-06 Fri
-my $LAST_UPDATED = '2026-07-24 Fri' ;
+my $LAST_UPDATED = '2026-07-25 Sat' ;
 #
 # Fix the list of remotes on a repo having multiple URLs for the `origin`
 # remote. This uses a config file containing the URLs of each repo, in the
@@ -18,6 +18,32 @@ my $LAST_UPDATED = '2026-07-24 Fri' ;
 #
 # Also provides an option to "split" the URLs into separate remotes, which
 # is helpful when cleaning things up in case the remotes get out of sync.
+#
+###############################################################################
+#
+# MIT License
+#
+# Copyright (C) 2026 John Simpson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+###############################################################################
 
 require 5.005 ;
 use strict ;
@@ -686,7 +712,7 @@ for my $dir ( @dirs )
 
         if ( $non_origin )
         {
-            yellowline "\nNOTE: cannot re-link branches\n " ;
+            yellowline "\nWARNING: cannot re-link branches\n " ;
         }
         else
         {
