@@ -1,7 +1,5 @@
 # Fix a Commit before Creating a New Branch
 
-**2024-06-20** jms1
-
 Our official workflow at `$DAYJOB` is to commit all work to a ticket-specific feature branch, and then create a pull request to get it merged into the primary branch. This allows people *other than yourself* to review your work before it gets merged into the main code.
 
 I'm not perfect, sometimes I forget to create a new branch first, and accidentally create commits directly on the primary branch. Usually I realize this *before* pushing anything, which means I can fix it on the local machine first.
@@ -31,7 +29,7 @@ $ git tree1 -a
 
 > &#x2139;&#xFE0F; `git tree1`
 >
-> This is one of my standard [git aliases](aliases.md).
+> This is one of [my standard git aliases](config.md#my-usual-aliases).
 
 In this case, I created two commits, `8a837d6` then `67f8356`, then realized I should have created a feature branch for it first.
 
