@@ -50,8 +50,11 @@
 - [PGP and GnuPG](pgp/index.md)
     - [Create a PGP Key]()
     - [Export and Import PGP Keys]()
+    - [Extend a Key's Expiration Date]()
     - [Authentication Subkeys](pgp/auth-subkey.md)
-    - [Make SSH use gpg-agent](pgp/ssh-pgp-agent.md)
+    - [Make SSH Use gpg-agent](pgp/ssh-gpg-agent/index.md)
+        - [Setup - Linux](pgp/ssh-gpg-agent/linux.md)
+        - [Setup - macOS](pgp/ssh-gpg-agent/macos.md)
 
 - [Puppet](puppet/index.md)
     - [ensure_packages()](puppet/ensure-packages.md)

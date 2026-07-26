@@ -1,0 +1,540 @@
+#!/bin/bash
+#
+# ssh-gpg-agent
+# John Simpson <jms1@jms1.net> 2026-03-19
+readonly LAST_UPDATED="2026-04-11"
+#
+# For macOS systems, make ssh commands use gpg-agent instead of ssh-agent.
+#
+###############################################################################
+#
+# MIT License
+#
+# Copyright (C) 2026 John Simpson
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
+###############################################################################
+
+########################################
+# Global variables
+#   MYDIR   dir containing script   '/Users/jms1/bin'
+#   MYNAME  name of script          'xyzzy'
+#   MYSELF  full path to script     '/Users/jms1/bin/xyzzy'
+
+MYDIR="$( cd -- "$( dirname -- "$0" )" >/dev/null 2>&1 || exit 1 ; pwd -P )"
+MYNAME="$( basename -- "$0" )"
+MYSELF="$MYDIR/$MYNAME"
+
+########################################
+# LA_PREFIX prefix (reversed domain name) of LaunchAgent's name
+# LA_NAME   LaunchAgent's name
+# LA_FILE   full path to LaunchAgent file to be installed or removed
+
+LA_PREFIX='net.jms1'
+LA_NAME="$LA_PREFIX.$MYNAME"
+LA_FILE="$HOME/Library/LaunchAgents/$LA_NAME.plist"
+
+########################################
+# Possible locations for the utilities we need
+# - we cannot rely on PATH
+
+GPGCA_LIST=(
+    /opt/homebrew/bin/gpg-connect-agent
+    /usr/local/bin/gpg-connect-agent
+)
+
+PMAC_LIST=(
+    /opt/homebrew/bin/pinentry-mac
+    /usr/local/bin/pinentry-mac
+)
+
+########################################
+# plist filenames used in previous attempts
+# - these will be removed if any changes are made
+
+OLD_PLISTS=(
+    net.jms1.gpg-agent.plist
+    net.jms1.gpg-agent-symlink.plist
+)
+
+###############################################################################
+#
+# Coloured line functions
+
+############################################################
+# Slice and dice a message into lines, print each line in the selected colour
+# - First parameter is the "n;n;n" value representing the foreground/background
+#   colour. It will be inserted into an "ESC [ ___ m" sequence.
+# - If more parmeters are present, they will be processsed.
+#   - Each parameter may be a single-line, multi-line, or empty string.
+# - If no more parameters are present, STDIN will be split into lines
+#   - empty lines in input will become blank coloured lines
+#   - empty STDIN will generate no output
+
+function coloured_line {
+    local COL P IFS LINE
+
+    ########################################
+    # The first parameter (required) is the 'n;n;n' code used in the escape
+    # sequence to set up the foreground and/or background colours.
+    #   ESC [ ___ m
+
+    COL="${1:?no colour code specified}"
+    shift
+
+    ########################################
+    # If any parameters remain (after shifting off the colour code),
+    # process each parameter.
+    # - Each parameter may be a single-line, multi-line, or empty string.
+    # - Split each parameter's value into lines.
+    # - Print each line, with the appropriate colour codes before/after it.
+
+    if (( $# > 0 ))
+    then
+        for P in "$@"
+        do
+            if [[ -n "$P" ]]
+            then
+                while IFS='' read -r LINE
+                do
+                    printf "\e[%sm%s\e[0K\e[0m\n" "$COL" "$LINE"
+                done <<< "$P"
+            else
+                printf "\e[%sm%s\e[0K\e[0m\n" "$COL" ''
+            fi
+        done
+
+    ########################################
+    # Otherwise (if no more parameters exist), process STDIN.
+    # - Each line will be printed, with the appropriate colour codes.
+    # - Empty lines are printed as empty strings, in the appropriate colour.
+
+    else
+        while IFS='' read -r LINE
+        do
+            printf "\e[%sm%s\e[0K\e[0m\n" "$COL" "$LINE"
+        done
+    fi
+}
+
+############################################################
+# Wrappers which specify different colours
+
+function redline {
+    coloured_line '0;1;37;41' "$@"
+}
+
+function yellowline {
+    coloured_line '0;30;43' "$@"
+}
+
+function blueline {
+    coloured_line '0;1;37;44' "$@"
+}
+
+function greenline {
+    coloured_line '0;1;37;42' "$@"
+}
+
+function cyanline {
+    coloured_line '0;1;37;46' "$@"
+}
+
+function purpleline {
+    coloured_line '0;1;37;45' "$@"
+}
+
+function whiteline {
+    coloured_line '0;1;37;47' "$@"
+}
+
+function fail {
+    redline "$@"
+    exit 1
+}
+
+###############################################################################
+#
+# Maybe print a command before executing it
+
+SET_X="${SET_X:-false}"
+
+function set_x {
+    local IFS=' '
+    if [[ "${SET_X:-false}" == "true" ]]
+    then
+        cyanline "$PS4$*" 1>&2
+    fi
+    "$@"
+}
+
+########################################
+# Show the same output that set_x would show,
+# but don't actually run the command
+
+function show_x {
+    local IFS=' '
+    if [[ "${SET_X:-false}" == "true" ]]
+    then
+        cyanline "$PS4$*" 1>&2
+    fi
+}
+
+###############################################################################
+#
+# Usage
+
+function usage {
+    local MSG
+    MSG="${*:-}"
+
+    cat <<EOF
+$0 [OPTIONS]
+
+Set things up on a macOS machine so that ssh, scp, and related commands use
+'gpg-agent' instead of 'ssh-agent'. This is needed if your SSH secret keys
+are stored on a YubiKey or a PGPcard-compatible smartcard.
+
+-i      Install and enable a LaunchAgent that runs this script during login.
+
+-r      Disable and remove the LaunchAgent that '-i' installs. Note that
+        this will not undo what the LaunchAgent does - if you need to go
+        back to using 'ssh-agent', you will need to log out and log back in
+        after removing the LaunchAgent.
+
+-l ___  Send this script's output to a log file. If used with '-i', the
+        LaunchAgent will use this log file when the user logs in.
+
+-x      Show the important commands being executed.
+
+-h      Show this help message.
+
+Last updated $LAST_UPDATED
+
+EOF
+
+    if [[ -n "$MSG" ]]
+    then
+        echo "$MSG"
+        exit 1
+    fi
+
+    exit 0
+}
+
+###############################################################################
+#
+# Remove LaunchAgent files for older attempts that didn't always work
+
+function remove_old_launch_agents {
+    local FN FILE ANNOUNCED
+
+    ANNOUNCED=false
+
+    for FN in "${OLD_PLISTS[@]}"
+    do
+        FILE="$HOME/Library/LaunchAgents/$FN"
+        if [[ -f "$FILE" ]]
+        then
+            if ! $ANNOUNCED
+            then
+                blueline 'Removing LaunchAgents from previous versions'
+                ANNOUNCED=true
+            fi
+
+            set_x launchctl unload -w "$FILE"
+            set_x rm -f "$FILE"
+        fi
+    done
+}
+
+###############################################################################
+###############################################################################
+###############################################################################
+#
+# Process the command line
+
+INSTALL=false
+REMOVE=false
+SET_X=false
+LOGFILE=''
+
+while getopts ':hirl:x' OPT
+do
+    case $OPT in
+        h)  usage
+            ;;
+        i)  INSTALL=true
+            ;;
+        r)  REMOVE=true
+            ;;
+        l)  LOGFILE="$OPTARG"
+            ;;
+        x)  SET_X=true
+            ;;
+        *)  usage "ERROR: unknown option '-$OPTARG'"
+            ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+
+########################################
+# Handle the various combinations of INSTALL and REMOVE
+
+USE_LOGFILE=true
+
+if $INSTALL
+then
+    if $REMOVE
+    then
+        usage "ERROR: do not use '-i' and '-r' together"
+    fi
+
+    USE_LOGFILE=false
+elif $REMOVE
+then
+    USE_LOGFILE=false
+fi
+
+########################################
+# If logging was requested, make that happen
+
+if $USE_LOGFILE && [[ -n "$LOGFILE" ]]
+then
+    exec >> "$LOGFILE" 2>&1
+    echo -e "\n===== $( date -u '+%Y-%m-%dT%T%z' ) =====\n"
+fi
+
+###############################################################################
+#
+# If we're being told to remove the LaunchAgent, do that and immediately exit.
+
+if $REMOVE
+then
+    blueline 'Removing LaunchAgent'
+
+    ########################################
+    # Remove the LaunchAgent that this script installs
+
+    if [[ -f "$LA_FILE" ]]
+    then
+        set_x launchctl unload -w "$LA_FILE" || true
+        set_x rm -f "$LA_FILE"
+    fi
+
+    ########################################
+    # Also remove LaunchAgent files from previous attempts
+    # (which didn't work reliably)
+
+    remove_old_launch_agents
+
+    ########################################
+    # Finished, exit now
+
+    set_x exit 0
+fi
+
+###############################################################################
+#
+# Make sure we have the executables we need
+# - if other paths are needed, edit the variables at the top of the script
+
+########################################
+# Find the gpg-connect-agent executable
+
+GPG_CONNECT_AGENT=''
+
+for X in "${GPGCA_LIST[@]}"
+do
+    if [[ -x "$X" ]]
+    then
+        GPG_CONNECT_AGENT="$X"
+        break
+    fi
+done
+
+if [[ -z "${GPG_CONNECT_AGENT:-}" ]]
+then
+    fail "ERROR: can't find \"gpg-connect-agent\", cannot continue"
+fi
+
+########################################
+# Find the pinentry-mac executable
+
+PINENTRY_MAC=''
+
+for X in "${PMAC_LIST[@]}"
+do
+    if [[ -x "$X" ]]
+    then
+        PINENTRY_MAC="$X"
+        break
+    fi
+done
+
+if [[ -z "${PINENTRY_MAC:-}" ]]
+then
+    fail "ERROR: can't find \"pinentry-mac\", cannot continue"
+fi
+
+###############################################################################
+#
+# If we're being told to install the LaunchAgent, do that.
+
+if $INSTALL
+then
+    ########################################
+    # If the LaunchAgent file already exists, remove it
+
+    if [[ -f "$LA_FILE" ]]
+    then
+        blueline 'Removing existing LaunchAgent'
+        set_x launchctl unload -w "$LA_FILE" || true
+        set_x rm -f "$LA_FILE"
+    fi
+
+    ########################################
+    # Tell the user what we're doing
+
+    if [[ -n "$LOGFILE" ]]
+    then
+        blueline "Installing LaunchAgent with log $LOGFILE"
+    else
+        blueline 'Installing LaunchAgent'
+    fi
+
+    ########################################
+    # Create the LaunchAgent which runs this script when the user logs in
+
+    show_x "cat > '$LA_FILE' <<EOF"
+
+    cat > "$LA_FILE" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/ProperyList-1.0/dtd">
+<plist version="1.0">
+  <dict>
+
+    <key>Label</key>
+    <string>$LA_NAME</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>$MYSELF</string>
+EOF
+
+    if [[ -n "$LOGFILE" ]]
+    then
+        cat >> "$LA_FILE" <<EOF
+      <string>-l</string>
+      <string>$LOGFILE</string>
+EOF
+    fi
+
+    cat >> "$LA_FILE" <<EOF
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+  </dict>
+</plist>
+EOF
+
+    if $SET_X
+    then
+        cat "$LA_FILE"
+        echo EOF
+    fi
+
+    ########################################
+    # Make sure the Launch Agent is running
+
+    set_x launchctl load -w "$LA_FILE"
+
+    ########################################
+    # Also remove LaunchAgent files from previous attempts
+    # (which didn't work reliably)
+
+    remove_old_launch_agents
+
+    ########################################
+    # Note that we're NOT exiting the script here.
+    #
+    # If we did, the user would need to log out and log back in (or reboot)
+    # in order to make the LaunchAgent set things up. The LaunchAgent does
+    # this by *running this script*, so if we just keep going and let the
+    # script do what it does, things will be set up for the current session
+    # without needing to log out and log back in.
+
+fi
+
+###############################################################################
+#
+# Do the deed
+
+########################################
+# Make sure SSH_AUTH_SOCK is not empty
+
+if [[ -z "$SSH_AUTH_SOCK" ]]
+then
+    fail "ERROR: SSH_AUTH_SOCK is not set, cannot continue"
+fi
+
+########################################
+# Make sure gpg-agent is configured correctly
+
+blueline "Configuring 'gpg-agent' to enable the SSH agent"
+
+GPG_DIR="${GNUPGHOME:-$HOME/.gnupg}"
+GPG_AGENT_CONF="$GPG_DIR/gpg-agent.conf"
+
+if [[ ! -d "$GPG_DIR" ]]
+then
+    set_x mkdir -p "$GPG_DIR"
+fi
+
+if ! set_x grep -q '^enable-ssh-support' "$GPG_AGENT_CONF"
+then
+    set_x echo 'enable-ssh-support' >> "$GPG_AGENT_CONF"
+fi
+
+if ! set_x grep -q '^pinentry-program' "$GPG_AGENT_CONF"
+then
+    set_x echo "pinentry-program        $PINENTRY_MAC" >> "$GPG_AGENT_CONF"
+fi
+
+########################################
+# Start (or restart) the gpg-agent process
+
+blueline 'Starting (or restarting) gpg-agent'
+
+set_x "$GPG_CONNECT_AGENT" killagent /bye
+set_x sleep 1
+set_x "$GPG_CONNECT_AGENT" /bye
+
+########################################
+# Create the symlink
+# - FROM        the SSH_AUTH_SOCK value assigned by launchd
+#               (since we can't reliably change the SSH_AUTH_SOCK value)
+# - POINTING TO the 'gpg-agent' SSH listener's unix socket
+
+blueline "Creating symlink which makes 'ssh' uses 'gpg-agent'"
+
+set_x /bin/ln -sf "$HOME/.gnupg/S.gpg-agent.ssh" "$SSH_AUTH_SOCK"
