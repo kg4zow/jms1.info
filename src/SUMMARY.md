@@ -13,7 +13,7 @@
     - [Software](uconsole/software.md)
 
 - [git](git/index.md)
-    - [Commit before new branch](git/move-commit.md)
+    - [Move a Commit to a New Branch](git/move-commit.md)
     - [Multiple Remote URLs](git/multi-remote.md)
     - [My Configuration](git/config.md)
     - [Signing commits with SSH keys](git/ssh.md)
