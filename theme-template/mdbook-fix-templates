@@ -2,7 +2,7 @@
 #
 # mdbook-fix-templates
 # jms1 2022-04-05
-my $VERSION = 'v0.5.2 2026-07-27 Mon' ;
+my $VERSION = 'v0.6.0 2026-07-28 Tue' ;
 #
 # Copy or update mdbook template files for "books".
 #
@@ -56,6 +56,7 @@ my $quiet           = 0 ;       # -q
 my $above_toc       = '' ;      # HTML fragment for above the ToC
 my $below_toc       = '' ;      # HTML fragment for below the ToC
 my $below_page      = '' ;      # HTML fragment for below the main page
+my $head_extra      = '' ;      # HTML fragment for the `<head>` section
 my $mdbook_ver      = '' ;      # mdbook version we're running
 my %themes          = () ;      # display names of custom themes
 
@@ -509,6 +510,28 @@ sub update_toc_js_hbs()
 
 ###############################################################################
 #
+# Update 'head.hbs' - HTML added to the <head> section
+
+sub update_head_hbs()
+{
+    rename_file_old( 'head.hbs' ) ;
+
+    my $orig = get_original_file( $mdbook_ver , 'head.hbs' ) ;
+
+    qprint "writing     head.hbs\n" ;
+
+    open( my $o , '>' , "head.hbs" )
+        or fail( "ERROR: can't write 'head.hbs': $!\n" ) ;
+    print $o $orig ;
+    print $o $head_extra ;
+
+    print $o "<!-- mdbook-fix-templates $VERSION - mdbook $mdbook_ver -->\n" ;
+
+    close $o ;
+}
+
+###############################################################################
+#
 # Update 'variables.css' - sets variable values used by CSS files
 
 sub update_variables_css()
@@ -650,6 +673,7 @@ qprint "mdbook      $mdbook_ver\n" ;
 $above_toc  = readfile_maybe( 'html/above-toc.html' ) ;
 $below_toc  = readfile_maybe( 'html/below-toc.html' ) ;
 $below_page = readfile_maybe( 'html/below-page.html' ) ;
+$head_extra = readfile_maybe( 'html/head.html' ) ;
 
 ########################################
 # Modify and write the files
@@ -659,3 +683,4 @@ update_variables_css() ;
 update_index_hbs() ;
 update_toc_html_hbs() ;
 update_toc_js_hbs() ;
+update_head_hbs() ;

@@ -10,7 +10,9 @@ class MDBookSidebarScrollbox extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `
 <!-- Start content above ToC -->
+<!-- removed, there's already a github link at the top right
      <a href='https://github.com/kg4zow/jms1.info/'>Github Repo</a>
+-->
 <!-- End content above ToC -->
 
 {{#toc}}{{/toc}}
@@ -35,17 +37,25 @@ class MDBookSidebarScrollbox extends HTMLElement {
     <br/>
     <hr>
     <a href='https://keybase.io/jms1' target='_blank'><img
-        style='height: 30px'
+        style='height: var(--button-size,32px)'
         src='/images/button-keybase.svg'
         alt='Keybase - jms1'></a>
     <a rel='me' href='https://mastodon.social/@jms1' target='_blank'><img
-        style='height: 30px'
+        style='height: var(--button-size,32px)'
         src='/images/button-mastodon.svg'
         alt='Mastodon - jms1@mastodon.social'></a>
     <a href='https://www.buymeacoffee.com/jms1' target='_blank'><img
-        style='height: 30px'
+        style='height: var(--button-size,32px)'
         src='/images/button-bmac.svg'
         alt='Buy Me A Coffee'></a>
+    <a href='http://www.catb.org/hacker-emblem/' target='_blank'><img
+        style='height: var(--button-size,32px)'
+        src='/images/button-hacker.svg'
+        alt='Hacker Logo'></a>
+    <a href='/commits.xml' target='_blank'><img
+        style='height: var(--button-size,32px)'
+        src='/images/button-rss.svg'
+        alt='RSS Feed'></a>
 <!-- End version-commit content below ToC -->
 `;
         // Set the current, active page, and reveal it if it's hidden
@@ -495,4 +505,4 @@ window.customElements.define('mdbook-sidebar-scrollbox', MDBookSidebarScrollbox)
 
 {{/if}}
 
-// mdbook-fix-templates v0.5.2 2026-07-27 Mon - mdbook v0.5.4
+// mdbook-fix-templates v0.6.0 2026-07-28 Tue - mdbook v0.5.4
