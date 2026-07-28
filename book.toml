@@ -21,6 +21,12 @@ hash-files              = false
 sidebar-header-nav      = false
 
 ########################################
+# Watch additional directories for changes
+
+[build]
+extra-watch-dirs        = [ "theme-template/themes" , "theme-template/html" ]
+
+########################################
 # Rebuild the theme files and copy the new `variables.css` into place
 
 [preprocessor.theme-rebuild]
