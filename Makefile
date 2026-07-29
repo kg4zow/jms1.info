@@ -4,7 +4,6 @@ build:
 	rm -rf theme/ && mkdir theme
 	mdbook build
 	if [ -f .git2rss -a -x git2rss ] ; then ./git2rss > book/commits.xml ; fi
-	if [ -f resume.pdf ] ; then cp -v resume.pdf book/ ; fi
 
 clean:
 	mdbook clean
