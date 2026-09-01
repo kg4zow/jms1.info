@@ -128,7 +128,7 @@ As an example, this is how I set up the repo holding the `jms1.info` site's sour
 
     When a remote is created, `git remote add` adds the "fetch" URL. The `git push` command uses this *only when* the remote doesn't have any specific "push" URLs.
 
-    If a remote has one or more "push" URLs, the `git push` command will not use the fetch URL. This means if you want pushes to go to the same server you pull from, you need to add a copy of the fetch URL, *as* a push URL.
+    **If a remote has one or more "push" URLs, the `git push` command will not use the fetch URL.** This means if you want pushes to go to the same server you pull from, **you need to add a copy of the fetch URL, *as* a push URL.**
 
     ```
     git remote set-url --add --push foks://(redacted)/jms1.info
